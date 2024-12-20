@@ -912,7 +912,7 @@ bool Plan::complete() const {
 float Plan::primary_rank() const {
   if (rank_.empty()) {
     params->heuristic.plan_rank(rank_, *this, params->weight, *domain,
-                                planning_graph);
+                                planning_graph, params->search_algorithm);
   }
   return rank_[0];
 }

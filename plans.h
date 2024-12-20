@@ -143,7 +143,9 @@ struct Plan {
   const Chain<Step>* steps() const { return steps_; }
 
   /* Returns the number of unique steps in this plan. */
-  size_t num_steps() const { return num_steps_; }
+  size_t num_steps() const { 
+    return num_steps_;
+  }
 
   /* Returns the links of this plan. */
   const Chain<Link>* links() const { return links_; }

@@ -44,7 +44,7 @@ InvalidActionCost::InvalidActionCost(const std::string& name)
 /* Constructs default planning parameters. */
 Parameters::Parameters()
     : time_limit(std::chrono::nanoseconds::max()),
-      search_algorithm(A_STAR),
+      search_algorithm(GBFS),
       heuristic("UCPOP"),
       action_cost(UNIT_COST),
       weight(1.0),
@@ -71,6 +71,8 @@ void Parameters::set_search_algorithm(const std::string& name) {
     search_algorithm = IDA_STAR;
   } else if (strcasecmp(n, "HC") == 0) {
     search_algorithm = HILL_CLIMBING;
+  } else if (strcasecmp(n, "GBFS") == 0) {
+    search_algorithm = GBFS;
   } else {
     throw InvalidSearchAlgorithm(name);
   }

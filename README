@@ -18,7 +18,7 @@ UCPOP with the following main features:
 
   * Several flaw selection strategies can be used simultaneously.
 
-  * Implements A*, IDA*, and hill climbing search.
+  * Implements GBFS, A* (with |plan|+h instead of g+h), IDA*, and hill climbing search.
 
   * Fully supports levels 1 and 3 of PDDL2.1.
 
@@ -33,6 +33,7 @@ Search Algorithms
 You can select the search algorithms to use with the -s flag.  The
 options are as follows:
 
+  GBFS for GBFS
   A for A*.
   IDA for IDA*.
   HC for hill climbing.
