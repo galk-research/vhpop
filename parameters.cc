@@ -44,7 +44,7 @@ InvalidActionCost::InvalidActionCost(const std::string& name)
 /* Constructs default planning parameters. */
 Parameters::Parameters()
     : time_limit(std::chrono::nanoseconds::max()),
-      search_algorithm(GBFS),
+      search_algorithm(A_STAR),
       heuristic("UCPOP"),
       action_cost(UNIT_COST),
       weight(1.0),
