@@ -45,7 +45,3 @@ Makefile
 # Backup files.
 *~
 
-/experiment-data
-
-landmarks.cc
-landmarks.h
