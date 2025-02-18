@@ -247,7 +247,8 @@ struct Heuristic {
   /* Fills the provided vector with the ranks for the given plan. */
   void plan_rank(std::vector<float>& rank, const Plan& plan,
                  float weight, const Domain& domain,
-                 const PlanningGraph* planning_graph) const;
+                 const PlanningGraph* planning_graph,
+                 int search_algorithm) const;
 
 private:
   /* Heuristics. */

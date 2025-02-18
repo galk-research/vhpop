@@ -71,6 +71,8 @@ void Parameters::set_search_algorithm(const std::string& name) {
     search_algorithm = IDA_STAR;
   } else if (strcasecmp(n, "HC") == 0) {
     search_algorithm = HILL_CLIMBING;
+  } else if (strcasecmp(n, "GBFS") == 0) {
+    search_algorithm = GBFS;
   } else {
     throw InvalidSearchAlgorithm(name);
   }

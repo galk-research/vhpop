@@ -1008,13 +1008,15 @@ bool Heuristic::needs_planning_graph() const {
 /* Fills the provided vector with the ranks for the given plan. */
 void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
                           float weight, const Domain& domain,
-                          const PlanningGraph* planning_graph) const {
+                          const PlanningGraph* planning_graph,
+                          int search_algorithm) const {
   bool add_done = false;
   float add_cost = 0.0f;
   int add_work = 0;
   bool addr_done = false;
   float addr_cost = 0.0f;
   int addr_work = 0;
+  int is_gbfs = (search_algorithm == Parameters::GBFS);
   for (std::vector<HVal>::const_iterator hi = h_.begin();
        hi != h_.end(); hi++) {
     HVal h = *hi;
@@ -1035,10 +1037,10 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
       rank.push_back((plan.num_unsafes() > 0) ? 1 : 0);
       break;
     case S_PLUS_OC:
-      rank.push_back(plan.num_steps() + weight*plan.num_open_conds());
+      rank.push_back(plan.num_steps()*(!is_gbfs) + weight*plan.num_open_conds());
       break;
     case UCPOP:
-      rank.push_back(plan.num_steps()
+      rank.push_back(plan.num_steps()*(!is_gbfs)
                      + weight*(plan.num_open_conds() + plan.num_unsafes()));
       break;
     case ADD:
@@ -1058,7 +1060,7 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
       }
       if (h == ADD) {
         if (add_cost < std::numeric_limits<int>::max()) {
-          rank.push_back(plan.num_steps() + weight*add_cost);
+          rank.push_back(plan.num_steps()*(!is_gbfs) + weight*add_cost);
         } else {
           rank.push_back(std::numeric_limits<float>::infinity());
         }
@@ -1093,7 +1095,7 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
       }
       if (h == ADDR) {
         if (addr_cost < std::numeric_limits<int>::max()) {
-          rank.push_back(plan.num_steps() + weight*addr_cost);
+          rank.push_back(plan.num_steps()*(!is_gbfs) + weight*addr_cost);
         } else {
           rank.push_back(std::numeric_limits<float>::infinity());
         }

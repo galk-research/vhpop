@@ -61,7 +61,7 @@ struct InvalidActionCost : public std::runtime_error {
  */
 struct Parameters {
   /* Valid search algorithms. */
-  typedef enum { A_STAR, IDA_STAR, HILL_CLIMBING } SearchAlgorithm;
+  typedef enum { A_STAR, IDA_STAR, HILL_CLIMBING, GBFS } SearchAlgorithm;
   /* Valid action costs. */
   typedef enum { UNIT_COST, DURATION, RELATIVE } ActionCost;
 
