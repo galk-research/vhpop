@@ -1,5 +1,5 @@
-VHPOP 3.0
-=========
+VHPOP 3.0.1
+===========
 
 VHPOP is a versatile heuristic partial order planner loosely based on
 UCPOP with the following main features:
@@ -171,6 +171,8 @@ regardless of which flaw selection strategy was used.
 
 Plans for Future Improvements
 -----------------------------
+
+* Add use of landmarks in the planning process
 
 * Add better support for plan optimization metric (currently ignored).
 

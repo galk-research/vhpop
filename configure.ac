@@ -20,7 +20,7 @@
 ## Inc., #59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 AC_PREREQ([2.71])
-AC_INIT([VHPOP],[3.0],[hlsyounes@gmail.com])
+AC_INIT([VHPOP],[3.0.1],[galk@cs.biu.ac.il])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(vhpop.cc)
 AM_INIT_AUTOMAKE([subdir-objects])
