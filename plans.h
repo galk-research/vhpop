@@ -25,6 +25,7 @@
 #include "chain.h"
 #include "flaws.h"
 #include "orderings.h"
+#include "landmarks.h"
 
 struct Parameters;
 struct BindingList;
@@ -147,6 +148,9 @@ struct Plan {
     return num_steps_;
   }
 
+  /* Returns the number of landmark steps in this plan. */
+  size_t landmark_steps() const { return landmark_steps_; }
+
   /* Returns the links of this plan. */
   const Chain<Link>* links() const { return links_; }
 
@@ -247,6 +251,8 @@ private:
   const size_t num_open_conds_;
   /* Chain of mutex threats. */
   const Chain<MutexThreat>* mutex_threats_;
+  /* Number of landmark steps in plan. */
+  size_t landmark_steps_;
   /* Rank of this plan. */
   mutable std::vector<float> rank_;
   /* Plan id (serial number). */
@@ -258,7 +264,7 @@ private:
 
   /* Returns the initial plan representing the given problem, or NULL
      if goals of problem are inconsistent. */
-  static const Plan* make_initial_plan(const Problem& problem);
+  static const Plan* make_initial_plan(const Problem& problem, bool use_landmarks);
 
   /* Constructs a plan. */
   Plan(const Chain<Step>* steps, size_t num_steps,
@@ -266,7 +272,7 @@ private:
        const Orderings& orderings, const Bindings& bindings,
        const Chain<Unsafe>* unsafes, size_t num_unsafes,
        const Chain<OpenCondition>* open_conds, size_t num_open_conds,
-       const Chain<MutexThreat>* mutex_threats, const Plan* parent);
+       const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t landmark_steps = 0);
 
   /* Returns the next flaw to work on. */
   const Flaw& get_flaw(const FlawSelectionOrder& flaw_order) const;

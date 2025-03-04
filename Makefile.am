@@ -34,7 +34,7 @@ src_libpddl_requirements_la_SOURCES = src/pddl-requirements.h \
 # VHPOP binaries.
 
 bin_PROGRAMS = vhpop
-vhpop_SOURCES = vhpop.cc refcount.h chain.h types.cc types.h terms.cc terms.h predicates.cc predicates.h functions.cc functions.h expressions.cc expressions.h formulas.cc formulas.h effects.cc effects.h actions.cc actions.h domains.cc domains.h problems.cc problems.h bindings.cc bindings.h orderings.cc orderings.h flaws.cc flaws.h heuristics.cc heuristics.h plans.cc plans.h parameters.cc parameters.h pddl.yy tokens.ll debug.h $(HEADER_FILES)
+vhpop_SOURCES = vhpop.cc refcount.h chain.h types.cc types.h terms.cc terms.h predicates.cc predicates.h functions.cc functions.h expressions.cc expressions.h formulas.cc formulas.h effects.cc effects.h actions.cc actions.h domains.cc domains.h problems.cc problems.h bindings.cc bindings.h orderings.cc orderings.h flaws.cc flaws.h heuristics.cc heuristics.h plans.cc plans.h landmarks.cc landmarks.h parameters.cc parameters.h pddl.yy tokens.ll debug.h $(HEADER_FILES)
 vhpop_LDADD = src/libpddl-requirements.la
 
 # VHPOP tests.

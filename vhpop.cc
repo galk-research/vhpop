@@ -31,6 +31,7 @@
 #include "parameters.h"
 #include "plans.h"
 #include "problems.h"
+#include "landmarks.h"
 
 #include "src/timer.h"
 
@@ -74,7 +75,7 @@ static struct option long_options[] = {
   { "weight", required_argument, NULL, 'w' },
   { 0, 0, 0, 0 }
 };
-static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:";
+static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:";
 
 
 /* Displays help. */
@@ -128,6 +129,8 @@ static void display_help() {
             << "\t\t\t  2 treats warnings as errors" << std::endl
             << "  -w,    --weight=w\t"
             << "weight to use with heuristic (default is 1)" << std::endl
+            << "  -m filename\t\t"
+            << "use landmarks from the specified file" << std::endl
             << "  file ...\t\t"
             << "files containing domain and problem descriptions;" << std::endl
             << "\t\t\t  if none, descriptions are read from standard input"
@@ -190,6 +193,7 @@ int main(int argc, char* argv[]) {
   verbosity = 0;
   /* Set default warning level. */
   warning_level = 1;
+  string landmark_file;
 
   /*
    * Get command line options.
@@ -298,6 +302,10 @@ int main(int argc, char* argv[]) {
     case 'w':
       params.weight = atof(optarg);
       break;
+    case 'm':
+      landmark_file = optarg;
+      params.landmarks = true;
+      break;
     case ':':
     default:
       std::cerr << "Try `" PACKAGE " --help' for more information."
@@ -360,6 +368,11 @@ int main(int argc, char* argv[]) {
     for (Problem::ProblemMap::const_iterator pi = Problem::begin();
          pi != Problem::end(); ) {
       const Problem& problem = *(*pi).second;
+
+      if (params.landmarks) {
+        read_landmarks_file(landmark_file, problem);
+      }
+
       pi++;
       std::cout << ';' << problem.name() << std::endl;
       Timer<> timer;
@@ -371,7 +384,7 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG
             std::cerr << "Depth of solution: " << plan->depth() << std::endl;
 #endif
-            std::cerr << "Number of steps: " << plan->num_steps() << std::endl;
+            std::cerr << "Number of steps: " << plan->num_steps() - plan->landmark_steps() << std::endl;
           }
           std::cout << *plan << std::endl;
         } else {

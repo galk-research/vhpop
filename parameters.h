@@ -87,6 +87,8 @@ struct Parameters {
   bool domain_constraints;
   /* Whether to keep static preconditions when using domain constraints. */
   bool keep_static_preconditions;
+  /* Whether to use landmark graph */
+  bool landmarks;
 
   /* Constructs default planning parameters. */
   Parameters();
