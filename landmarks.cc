@@ -20,7 +20,7 @@ vector<string> split(const string &s, char delimiter) {
 
 LandmarkGraph lm_graph;
 
-const Atom get_atom(string line, const PredicateTable& predicateTable, const TermTable& termTable) {
+const Atom& get_atom(string line, const PredicateTable& predicateTable, const TermTable& termTable) {
     
     size_t posAtom = line.find("Atom ");
     size_t posLeftParen = line.find("(", posAtom);
@@ -33,10 +33,9 @@ const Atom get_atom(string line, const PredicateTable& predicateTable, const Ter
         termList.push_back(*termTable.find_object(term));
     }
     return Atom::make(*predicateTable.find_predicate(atom), termList);
-
 }
 
-Formula* get_formula(string line, const Problem& problem) {
+Formula& get_formula(string line, const Problem& problem) {
     const PredicateTable& predicateTable = problem.domain().predicates();
     const TermTable& termTable = problem.terms();
     
@@ -44,35 +43,36 @@ Formula* get_formula(string line, const Problem& problem) {
     size_t posDisj = line.find("disj {");
     
     if(posConj != string::npos || posDisj != string::npos) {
-        vector<Atom> atomsList;
+        vector<const Atom*> atomsList;
         size_t posAtom = line.find("Atom ");
         while (posAtom != string::npos) {
-            atomsList.push_back(get_atom(line, predicateTable, termTable));
+            atomsList.push_back(&get_atom(line, predicateTable, termTable));
             
             line[posAtom] = '$';
             posAtom = line.find("Atom ");
         }
 
         if(posConj != string::npos) {
-            auto* formula = new Conjunction();
-            for (const Atom& atom : atomsList) {
-                formula->add_conjunct(*new Atom(atom));
+            Conjunction& formula = *new Conjunction();
+            for (const Atom* atom : atomsList) {
+                formula.add_conjunct(*atom);
             }
             return formula;
         } else {
-            auto* formula = new Disjunction();
-            for (const Atom& atom : atomsList) {
-                formula->add_disjunct(*new Atom(atom));
+            Disjunction& formula = *new Disjunction();
+            for (const Atom* atom : atomsList) {
+                formula.add_disjunct(*atom);
             }
             return formula;
         }
     } else {  
         size_t posAtom = line.find("NegatedAtom ");
+        const Atom& atom = get_atom(line, predicateTable, termTable);
         if(posAtom != string::npos) {
             // return new Negation(get_atom(line, predicateTable, termTable));
-            return const_cast<Negation*>(&Negation::make(*new Atom(get_atom(line, predicateTable, termTable))));
+            return const_cast<Negation&>(Negation::make(atom));
         }
-        return new Atom(get_atom(line, predicateTable, termTable));
+        return const_cast<Atom&>(atom);
     }
 }   
 
@@ -88,7 +88,7 @@ int add_landmark(string line, const Problem& problem) {
 
     lm_graph.landmarks[nodeId] = Landmark();
     lm_graph.landmarks[nodeId].id = nodeId;
-    lm_graph.landmarks[nodeId].formula = get_formula(rest, problem);
+    lm_graph.landmarks[nodeId].set_formula(&get_formula(rest, problem));
     
     lm_graph.num_landmarks++;
 

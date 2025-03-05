@@ -34,6 +34,22 @@ struct Landmark {
 
     Landmark() : is_initial_state(true), is_goal_state(true), id(-1), formula(nullptr) {}
 
+    ~Landmark() {
+        if (formula != nullptr) {
+            Formula::unregister_use(formula);
+        }
+    }
+
+    void set_formula(Formula* new_formula) {
+        if (formula != nullptr) {
+            Formula::unregister_use(formula);
+        }
+        formula = new_formula;
+        if (formula != nullptr) {
+            Formula::register_use(formula);
+        }
+    }
+
     void set_id(int new_id) {
         this->id = new_id;
     }

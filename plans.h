@@ -264,7 +264,7 @@ private:
 
   /* Returns the initial plan representing the given problem, or NULL
      if goals of problem are inconsistent. */
-  static const Plan* make_initial_plan(const Problem& problem, bool use_landmarks);
+  static const Plan* make_initial_plan(const Problem& problem);
 
   /* Constructs a plan. */
   Plan(const Chain<Step>* steps, size_t num_steps,

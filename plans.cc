@@ -441,7 +441,7 @@ static const Bindings* step_instantiation(const Chain<Step>* steps, size_t n,
 
 /* Returns the initial plan representing the given problem, or NULL
    if initial conditions or goals of the problem are inconsistent. */
-const Plan* Plan::make_initial_plan(const Problem& problem, bool use_landmarks) {
+const Plan* Plan::make_initial_plan(const Problem& problem) {
   /*
    * Create goal of problem.
    */
@@ -506,8 +506,7 @@ const Plan* Plan::make_initial_plan(const Problem& problem, bool use_landmarks) 
   }
 
   // insert landmarks into the initial plan to guide the planner
-  
-  if (use_landmarks) {
+  if (params->landmarks) {
     vector<Step> steps_map;
     // adding a dummy action for each landmark
     for (int i = 0; i < lm_graph.num_landmarks; i++) {
@@ -530,16 +529,8 @@ const Plan* Plan::make_initial_plan(const Problem& problem, bool use_landmarks) 
       steps_map.push_back(dummy_step);
       lm->set_id(step_id);
 
-      if (!add_goal(open_conds, num_open_conds, new_bindings,
-        dummy_action->condition(), step_id)) {
-        /* Goals are inconsistent. */
-        RCObject::ref(open_conds);
-        RCObject::destructive_deref(open_conds);
-        return NULL;
-      }
-      if (params->domain_constraints) {
-        bindings = bindings->add(step_id, *dummy_action, *planning_graph);
-      }
+      add_goal(open_conds, num_open_conds, new_bindings, dummy_action->condition(), step_id);
+      
       // adding the dummy actions to the orderings
       orderings = orderings->refine(Ordering(step_id, StepTime::AT_START, GOAL_ID, StepTime::AT_START),
                             dummy_step, planning_graph,
@@ -566,7 +557,7 @@ const Plan* Plan::make_initial_plan(const Problem& problem, bool use_landmarks) 
 
   /* Return initial plan. */
   return new Plan(steps, num_steps, NULL, 0, *orderings, *bindings,
-                  NULL, 0, open_conds, num_open_conds, mutex_threats, NULL, use_landmarks ? num_steps : 0);
+                  NULL, 0, open_conds, num_open_conds, mutex_threats, NULL, params->landmarks ? num_steps : 0);
 }
 
 
@@ -654,29 +645,25 @@ const Plan* Plan::plan(const Problem& problem, const Parameters& p,
   /* Dead plan queues. */
   std::vector<PlanQueue*> dead_queues;
   /* Construct the initial plan. */
-  const Plan* initial_plan = make_initial_plan(problem, params->landmarks);
+  const Plan* initial_plan = make_initial_plan(problem);
   if (initial_plan != NULL) {
     initial_plan->id_ = 0;
   }
-  // if (params->landmarks) {
-    //   initialize_landmarks(initial_plan);
-    // }
-    
-    /* Variable for progress bar (number of generated plans). */
-    size_t last_dot = 0;
-    /* Variable for progress bar (time). */
-    std::chrono::minutes next_hash(1);
-    
-    /*
-    * Search for complete plan.
-    */
-   size_t current_flaw_order = 0;
-   size_t flaw_orders_left = params->flaw_orders.size();
-   size_t next_switch = 1000;
-   const Plan* current_plan = initial_plan;
-   generated_plans[current_flaw_order]++;
-   num_generated_plans++;
-   if (verbosity > 1) {
+  /* Variable for progress bar (number of generated plans). */
+  size_t last_dot = 0;
+  /* Variable for progress bar (time). */
+  std::chrono::minutes next_hash(1);
+  
+  /*
+  * Search for complete plan.
+  */
+  size_t current_flaw_order = 0;
+  size_t flaw_orders_left = params->flaw_orders.size();
+  size_t next_switch = 1000;
+  const Plan* current_plan = initial_plan;
+  generated_plans[current_flaw_order]++;
+  num_generated_plans++;
+  if (verbosity > 1) {
      std::cerr << "using flaw order " << current_flaw_order << std::endl;
   }
   float f_limit;
