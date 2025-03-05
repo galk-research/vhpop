@@ -547,9 +547,6 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
  
         size_t to_id = lm_graph.landmarks[e.to].id;
         size_t from_id = lm_graph.landmarks[e.from].id;
-        // orderings = orderings->refine(Ordering(from_id, StepTime::AT_START, to_id, StepTime::AT_START),
-        //                     steps_map[i], planning_graph,
-        //                     params->ground_actions ? NULL : bindings);
         orderings = orderings->refine(Ordering(from_id, StepTime::AT_START, to_id, StepTime::AT_START));
       }
     }
