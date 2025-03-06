@@ -1,0 +1,419 @@
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: /usr/bin/python3 /home/neria/final-project/MODDED_FD/builds/release/bin/translate/translate.py examples/gripper-domain.pddl examples/gripper-20.pddl --sas-file output.sas
+Parsing...
+Parsing: [0.000s CPU, 0.001s wall-clock]
+Normalizing task... [0.000s CPU, 0.000s wall-clock]
+Instantiating...
+Generating Datalog program... [0.000s CPU, 0.001s wall-clock]
+Normalizing Datalog program...
+Normalizing Datalog program: [0.000s CPU, 0.001s wall-clock]
+Preparing model... [0.000s CPU, 0.001s wall-clock]
+Generated 24 rules.
+Computing model... [0.000s CPU, 0.003s wall-clock]
+321 relevant atoms
+220 auxiliary atoms
+541 final queue length
+724 total queue pushes
+Completing instantiation... [0.010s CPU, 0.003s wall-clock]
+Instantiating: [0.010s CPU, 0.009s wall-clock]
+Computing fact groups...
+Finding invariants...
+10 initial candidates
+Finding invariants: [0.000s CPU, 0.001s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.000s wall-clock]
+Instantiating groups... [0.000s CPU, 0.001s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.000s wall-clock]
+Choosing groups...
+0 uncovered facts
+Choosing groups: [0.000s CPU, 0.000s wall-clock]
+Building translation key... [0.000s CPU, 0.000s wall-clock]
+Computing fact groups: [0.000s CPU, 0.003s wall-clock]
+Building STRIPS to SAS dictionary... [0.000s CPU, 0.000s wall-clock]
+Building dictionary for full mutex groups... [0.000s CPU, 0.000s wall-clock]
+Building mutex information...
+Building mutex information: [0.000s CPU, 0.000s wall-clock]
+Translating task...
+Processing axioms...
+Simplifying axioms... [0.000s CPU, 0.000s wall-clock]
+Processing axioms: [0.000s CPU, 0.000s wall-clock]
+Translating task: [0.000s CPU, 0.004s wall-clock]
+0 effect conditions simplified
+0 implied preconditions added
+Detecting unreachable propositions...
+0 operators removed
+0 axioms removed
+3 propositions removed
+Detecting unreachable propositions: [0.010s CPU, 0.003s wall-clock]
+Reordering and filtering variables...
+23 of 23 variables necessary.
+20 of 23 mutex groups necessary.
+162 of 162 operators necessary.
+0 of 0 axiom rules necessary.
+Reordering and filtering variables: [0.000s CPU, 0.001s wall-clock]
+Translator variables: 23
+Translator derived variables: 0
+Translator facts: 104
+Translator goal facts: 20
+Translator mutex groups: 20
+Translator total mutex groups size: 80
+Translator operators: 162
+Translator axioms: 0
+Translator task size: 1113
+Translator peak memory: 28684 KB
+Writing output... [0.000s CPU, 0.002s wall-clock]
+Done! [0.020s CPU, 0.025s wall-clock]
+
+translate exit code: 0
+INFO     Running search (release).
+INFO     search stdin: output.sas
+INFO     search time limit: None
+INFO     search memory limit: None
+INFO     search command line string: /home/neria/final-project/MODDED_FD/builds/release/bin/downward --if-unit-cost --evaluator 'hlm=lmcount(lm_rhw(reasonable_orders=true),pref=true)' --evaluator 'hff=ff()' --search 'iterated([lazy_greedy([hff,hlm],preferred=[hff,hlm]),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=5),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=3),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=2),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=1)],repeat_last=true,continue_on_fail=true)' --if-non-unit-cost --evaluator 'hlm1=lmcount(lm_rhw(reasonable_orders=true),transform=adapt_costs(one),pref=true)' --evaluator 'hff1=ff(transform=adapt_costs(one))' --evaluator 'hlm2=lmcount(lm_rhw(reasonable_orders=true),transform=adapt_costs(plusone),pref=true)' --evaluator 'hff2=ff(transform=adapt_costs(plusone))' --search 'iterated([lazy_greedy([hff1,hlm1],preferred=[hff1,hlm1],cost_type=one,reopen_closed=false),lazy_greedy([hff2,hlm2],preferred=[hff2,hlm2],reopen_closed=false),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=5),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=3),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=2),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=1)],repeat_last=true,continue_on_fail=true)' --always --internal-plan-file sas_plan < output.sas
+reading input... [t=3.26e-05s]
+done reading input! [t=0.0007089s]
+Initializing landmarks count heuristic...
+Initializing Exploration...
+Generating landmarks using the RPG/SAS+ approach
+approx. reasonable orders
+approx. obedient reasonable orders
+Removed 0 reasonable or obedient reasonable orders
+Landmarks generation time: 0.0017153s
+Discovered 62 landmarks, of which 20 are disjunctive and 0 are conjunctive 
+101 edges
+############################################################################
+Landmark graph: 
+LM 60 disj {Atom carry(ball9, left) (var1(1)->19), Atom carry(ball9, right) (var2(2)->19)} Achievers (4, 2)
+		<-_gn  LM 59 Atom at(ball9, rooma) (var22(22)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 19 Atom at(ball9, roomb) (var22(22)->1)(goal) Achievers (2, 2)
+
+LM 58 disj {Atom carry(ball8, left) (var1(1)->18), Atom carry(ball8, right) (var2(2)->18)} Achievers (4, 2)
+		<-_gn  LM 57 Atom at(ball8, rooma) (var21(21)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 18 Atom at(ball8, roomb) (var21(21)->1)(goal) Achievers (2, 2)
+
+LM 56 disj {Atom carry(ball7, left) (var1(1)->17), Atom carry(ball7, right) (var2(2)->17)} Achievers (4, 2)
+		<-_gn  LM 55 Atom at(ball7, rooma) (var20(20)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 17 Atom at(ball7, roomb) (var20(20)->1)(goal) Achievers (2, 2)
+
+LM 54 disj {Atom carry(ball6, left) (var1(1)->16), Atom carry(ball6, right) (var2(2)->16)} Achievers (4, 2)
+		<-_gn  LM 53 Atom at(ball6, rooma) (var19(19)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 16 Atom at(ball6, roomb) (var19(19)->1)(goal) Achievers (2, 2)
+
+LM 52 disj {Atom carry(ball5, left) (var1(1)->15), Atom carry(ball5, right) (var2(2)->15)} Achievers (4, 2)
+		<-_gn  LM 51 Atom at(ball5, rooma) (var18(18)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 15 Atom at(ball5, roomb) (var18(18)->1)(goal) Achievers (2, 2)
+
+LM 50 disj {Atom carry(ball4, left) (var1(1)->14), Atom carry(ball4, right) (var2(2)->14)} Achievers (4, 2)
+		<-_gn  LM 49 Atom at(ball4, rooma) (var17(17)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 14 Atom at(ball4, roomb) (var17(17)->1)(goal) Achievers (2, 2)
+
+LM 48 disj {Atom carry(ball3, left) (var1(1)->13), Atom carry(ball3, right) (var2(2)->13)} Achievers (4, 2)
+		<-_gn  LM 47 Atom at(ball3, rooma) (var16(16)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 13 Atom at(ball3, roomb) (var16(16)->1)(goal) Achievers (2, 2)
+
+LM 46 disj {Atom carry(ball20, left) (var1(1)->12), Atom carry(ball20, right) (var2(2)->12)} Achievers (4, 2)
+		<-_gn  LM 45 Atom at(ball20, rooma) (var15(15)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 12 Atom at(ball20, roomb) (var15(15)->1)(goal) Achievers (2, 2)
+
+LM 44 disj {Atom carry(ball2, left) (var1(1)->11), Atom carry(ball2, right) (var2(2)->11)} Achievers (4, 2)
+		<-_gn  LM 43 Atom at(ball2, rooma) (var14(14)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 11 Atom at(ball2, roomb) (var14(14)->1)(goal) Achievers (2, 2)
+
+LM 42 disj {Atom carry(ball19, left) (var1(1)->10), Atom carry(ball19, right) (var2(2)->10)} Achievers (4, 2)
+		<-_gn  LM 41 Atom at(ball19, rooma) (var13(13)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 10 Atom at(ball19, roomb) (var13(13)->1)(goal) Achievers (2, 2)
+
+LM 40 disj {Atom carry(ball18, left) (var1(1)->9), Atom carry(ball18, right) (var2(2)->9)} Achievers (4, 2)
+		<-_gn  LM 39 Atom at(ball18, rooma) (var12(12)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 9 Atom at(ball18, roomb) (var12(12)->1)(goal) Achievers (2, 2)
+
+LM 38 disj {Atom carry(ball17, left) (var1(1)->8), Atom carry(ball17, right) (var2(2)->8)} Achievers (4, 2)
+		<-_gn  LM 37 Atom at(ball17, rooma) (var11(11)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 8 Atom at(ball17, roomb) (var11(11)->1)(goal) Achievers (2, 2)
+
+LM 36 disj {Atom carry(ball16, left) (var1(1)->7), Atom carry(ball16, right) (var2(2)->7)} Achievers (4, 2)
+		<-_gn  LM 35 Atom at(ball16, rooma) (var10(10)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 7 Atom at(ball16, roomb) (var10(10)->1)(goal) Achievers (2, 2)
+
+LM 34 disj {Atom carry(ball15, left) (var1(1)->6), Atom carry(ball15, right) (var2(2)->6)} Achievers (4, 2)
+		<-_gn  LM 33 Atom at(ball15, rooma) (var9(9)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 6 Atom at(ball15, roomb) (var9(9)->1)(goal) Achievers (2, 2)
+
+LM 32 disj {Atom carry(ball14, left) (var1(1)->5), Atom carry(ball14, right) (var2(2)->5)} Achievers (4, 2)
+		<-_gn  LM 31 Atom at(ball14, rooma) (var8(8)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 5 Atom at(ball14, roomb) (var8(8)->1)(goal) Achievers (2, 2)
+
+LM 30 disj {Atom carry(ball13, left) (var1(1)->4), Atom carry(ball13, right) (var2(2)->4)} Achievers (4, 2)
+		<-_gn  LM 29 Atom at(ball13, rooma) (var7(7)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 4 Atom at(ball13, roomb) (var7(7)->1)(goal) Achievers (2, 2)
+
+LM 28 disj {Atom carry(ball12, left) (var1(1)->3), Atom carry(ball12, right) (var2(2)->3)} Achievers (4, 2)
+		<-_gn  LM 27 Atom at(ball12, rooma) (var6(6)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 3 Atom at(ball12, roomb) (var6(6)->1)(goal) Achievers (2, 2)
+
+LM 26 disj {Atom carry(ball11, left) (var1(1)->2), Atom carry(ball11, right) (var2(2)->2)} Achievers (4, 2)
+		<-_gn  LM 25 Atom at(ball11, rooma) (var5(5)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 2 Atom at(ball11, roomb) (var5(5)->1)(goal) Achievers (2, 2)
+
+LM 24 disj {Atom carry(ball10, left) (var1(1)->1), Atom carry(ball10, right) (var2(2)->1)} Achievers (4, 2)
+		<-_gn  LM 23 Atom at(ball10, rooma) (var4(4)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 1 Atom at(ball10, roomb) (var4(4)->1)(goal) Achievers (2, 2)
+
+LM 22 disj {Atom carry(ball1, left) (var1(1)->0), Atom carry(ball1, right) (var2(2)->0)} Achievers (4, 2)
+		<-_gn  LM 21 Atom at(ball1, rooma) (var3(3)->0) Achievers (2, 2)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 0 Atom at(ball1, roomb) (var3(3)->1)(goal) Achievers (2, 2)
+
+LM 19 Atom at(ball9, roomb) (var22(22)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 60 disj {Atom carry(ball9, left) (var1(1)->19), Atom carry(ball9, right) (var2(2)->19)} Achievers (4, 2)
+		<-_nat LM 59 Atom at(ball9, rooma) (var22(22)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 59 Atom at(ball9, rooma) (var22(22)->0) Achievers (2, 2)
+		->_gn  LM 60 disj {Atom carry(ball9, left) (var1(1)->19), Atom carry(ball9, right) (var2(2)->19)} Achievers (4, 2)
+		->_nat LM 19 Atom at(ball9, roomb) (var22(22)->1)(goal) Achievers (2, 2)
+
+LM 18 Atom at(ball8, roomb) (var21(21)->1)(goal) Achievers (2, 2)
+		<-_nat LM 57 Atom at(ball8, rooma) (var21(21)->0) Achievers (2, 2)
+		<-_gn  LM 58 disj {Atom carry(ball8, left) (var1(1)->18), Atom carry(ball8, right) (var2(2)->18)} Achievers (4, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 57 Atom at(ball8, rooma) (var21(21)->0) Achievers (2, 2)
+		->_gn  LM 58 disj {Atom carry(ball8, left) (var1(1)->18), Atom carry(ball8, right) (var2(2)->18)} Achievers (4, 2)
+		->_nat LM 18 Atom at(ball8, roomb) (var21(21)->1)(goal) Achievers (2, 2)
+
+LM 17 Atom at(ball7, roomb) (var20(20)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 56 disj {Atom carry(ball7, left) (var1(1)->17), Atom carry(ball7, right) (var2(2)->17)} Achievers (4, 2)
+		<-_nat LM 55 Atom at(ball7, rooma) (var20(20)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 55 Atom at(ball7, rooma) (var20(20)->0) Achievers (2, 2)
+		->_gn  LM 56 disj {Atom carry(ball7, left) (var1(1)->17), Atom carry(ball7, right) (var2(2)->17)} Achievers (4, 2)
+		->_nat LM 17 Atom at(ball7, roomb) (var20(20)->1)(goal) Achievers (2, 2)
+
+LM 16 Atom at(ball6, roomb) (var19(19)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 54 disj {Atom carry(ball6, left) (var1(1)->16), Atom carry(ball6, right) (var2(2)->16)} Achievers (4, 2)
+		<-_nat LM 53 Atom at(ball6, rooma) (var19(19)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 53 Atom at(ball6, rooma) (var19(19)->0) Achievers (2, 2)
+		->_gn  LM 54 disj {Atom carry(ball6, left) (var1(1)->16), Atom carry(ball6, right) (var2(2)->16)} Achievers (4, 2)
+		->_nat LM 16 Atom at(ball6, roomb) (var19(19)->1)(goal) Achievers (2, 2)
+
+LM 15 Atom at(ball5, roomb) (var18(18)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 52 disj {Atom carry(ball5, left) (var1(1)->15), Atom carry(ball5, right) (var2(2)->15)} Achievers (4, 2)
+		<-_nat LM 51 Atom at(ball5, rooma) (var18(18)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 51 Atom at(ball5, rooma) (var18(18)->0) Achievers (2, 2)
+		->_gn  LM 52 disj {Atom carry(ball5, left) (var1(1)->15), Atom carry(ball5, right) (var2(2)->15)} Achievers (4, 2)
+		->_nat LM 15 Atom at(ball5, roomb) (var18(18)->1)(goal) Achievers (2, 2)
+
+LM 14 Atom at(ball4, roomb) (var17(17)->1)(goal) Achievers (2, 2)
+		<-_nat LM 49 Atom at(ball4, rooma) (var17(17)->0) Achievers (2, 2)
+		<-_gn  LM 50 disj {Atom carry(ball4, left) (var1(1)->14), Atom carry(ball4, right) (var2(2)->14)} Achievers (4, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 49 Atom at(ball4, rooma) (var17(17)->0) Achievers (2, 2)
+		->_gn  LM 50 disj {Atom carry(ball4, left) (var1(1)->14), Atom carry(ball4, right) (var2(2)->14)} Achievers (4, 2)
+		->_nat LM 14 Atom at(ball4, roomb) (var17(17)->1)(goal) Achievers (2, 2)
+
+LM 13 Atom at(ball3, roomb) (var16(16)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 48 disj {Atom carry(ball3, left) (var1(1)->13), Atom carry(ball3, right) (var2(2)->13)} Achievers (4, 2)
+		<-_nat LM 47 Atom at(ball3, rooma) (var16(16)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 47 Atom at(ball3, rooma) (var16(16)->0) Achievers (2, 2)
+		->_gn  LM 48 disj {Atom carry(ball3, left) (var1(1)->13), Atom carry(ball3, right) (var2(2)->13)} Achievers (4, 2)
+		->_nat LM 13 Atom at(ball3, roomb) (var16(16)->1)(goal) Achievers (2, 2)
+
+LM 12 Atom at(ball20, roomb) (var15(15)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 46 disj {Atom carry(ball20, left) (var1(1)->12), Atom carry(ball20, right) (var2(2)->12)} Achievers (4, 2)
+		<-_nat LM 45 Atom at(ball20, rooma) (var15(15)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 45 Atom at(ball20, rooma) (var15(15)->0) Achievers (2, 2)
+		->_gn  LM 46 disj {Atom carry(ball20, left) (var1(1)->12), Atom carry(ball20, right) (var2(2)->12)} Achievers (4, 2)
+		->_nat LM 12 Atom at(ball20, roomb) (var15(15)->1)(goal) Achievers (2, 2)
+
+LM 11 Atom at(ball2, roomb) (var14(14)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 44 disj {Atom carry(ball2, left) (var1(1)->11), Atom carry(ball2, right) (var2(2)->11)} Achievers (4, 2)
+		<-_nat LM 43 Atom at(ball2, rooma) (var14(14)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 43 Atom at(ball2, rooma) (var14(14)->0) Achievers (2, 2)
+		->_gn  LM 44 disj {Atom carry(ball2, left) (var1(1)->11), Atom carry(ball2, right) (var2(2)->11)} Achievers (4, 2)
+		->_nat LM 11 Atom at(ball2, roomb) (var14(14)->1)(goal) Achievers (2, 2)
+
+LM 10 Atom at(ball19, roomb) (var13(13)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 42 disj {Atom carry(ball19, left) (var1(1)->10), Atom carry(ball19, right) (var2(2)->10)} Achievers (4, 2)
+		<-_nat LM 41 Atom at(ball19, rooma) (var13(13)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 41 Atom at(ball19, rooma) (var13(13)->0) Achievers (2, 2)
+		->_gn  LM 42 disj {Atom carry(ball19, left) (var1(1)->10), Atom carry(ball19, right) (var2(2)->10)} Achievers (4, 2)
+		->_nat LM 10 Atom at(ball19, roomb) (var13(13)->1)(goal) Achievers (2, 2)
+
+LM 9 Atom at(ball18, roomb) (var12(12)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 40 disj {Atom carry(ball18, left) (var1(1)->9), Atom carry(ball18, right) (var2(2)->9)} Achievers (4, 2)
+		<-_nat LM 39 Atom at(ball18, rooma) (var12(12)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 39 Atom at(ball18, rooma) (var12(12)->0) Achievers (2, 2)
+		->_gn  LM 40 disj {Atom carry(ball18, left) (var1(1)->9), Atom carry(ball18, right) (var2(2)->9)} Achievers (4, 2)
+		->_nat LM 9 Atom at(ball18, roomb) (var12(12)->1)(goal) Achievers (2, 2)
+
+LM 8 Atom at(ball17, roomb) (var11(11)->1)(goal) Achievers (2, 2)
+		<-_nat LM 37 Atom at(ball17, rooma) (var11(11)->0) Achievers (2, 2)
+		<-_gn  LM 38 disj {Atom carry(ball17, left) (var1(1)->8), Atom carry(ball17, right) (var2(2)->8)} Achievers (4, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 37 Atom at(ball17, rooma) (var11(11)->0) Achievers (2, 2)
+		->_gn  LM 38 disj {Atom carry(ball17, left) (var1(1)->8), Atom carry(ball17, right) (var2(2)->8)} Achievers (4, 2)
+		->_nat LM 8 Atom at(ball17, roomb) (var11(11)->1)(goal) Achievers (2, 2)
+
+LM 7 Atom at(ball16, roomb) (var10(10)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 36 disj {Atom carry(ball16, left) (var1(1)->7), Atom carry(ball16, right) (var2(2)->7)} Achievers (4, 2)
+		<-_nat LM 35 Atom at(ball16, rooma) (var10(10)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 35 Atom at(ball16, rooma) (var10(10)->0) Achievers (2, 2)
+		->_gn  LM 36 disj {Atom carry(ball16, left) (var1(1)->7), Atom carry(ball16, right) (var2(2)->7)} Achievers (4, 2)
+		->_nat LM 7 Atom at(ball16, roomb) (var10(10)->1)(goal) Achievers (2, 2)
+
+LM 6 Atom at(ball15, roomb) (var9(9)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 34 disj {Atom carry(ball15, left) (var1(1)->6), Atom carry(ball15, right) (var2(2)->6)} Achievers (4, 2)
+		<-_nat LM 33 Atom at(ball15, rooma) (var9(9)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 33 Atom at(ball15, rooma) (var9(9)->0) Achievers (2, 2)
+		->_gn  LM 34 disj {Atom carry(ball15, left) (var1(1)->6), Atom carry(ball15, right) (var2(2)->6)} Achievers (4, 2)
+		->_nat LM 6 Atom at(ball15, roomb) (var9(9)->1)(goal) Achievers (2, 2)
+
+LM 5 Atom at(ball14, roomb) (var8(8)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 32 disj {Atom carry(ball14, left) (var1(1)->5), Atom carry(ball14, right) (var2(2)->5)} Achievers (4, 2)
+		<-_nat LM 31 Atom at(ball14, rooma) (var8(8)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 31 Atom at(ball14, rooma) (var8(8)->0) Achievers (2, 2)
+		->_gn  LM 32 disj {Atom carry(ball14, left) (var1(1)->5), Atom carry(ball14, right) (var2(2)->5)} Achievers (4, 2)
+		->_nat LM 5 Atom at(ball14, roomb) (var8(8)->1)(goal) Achievers (2, 2)
+
+LM 4 Atom at(ball13, roomb) (var7(7)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 30 disj {Atom carry(ball13, left) (var1(1)->4), Atom carry(ball13, right) (var2(2)->4)} Achievers (4, 2)
+		<-_nat LM 29 Atom at(ball13, rooma) (var7(7)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 29 Atom at(ball13, rooma) (var7(7)->0) Achievers (2, 2)
+		->_gn  LM 30 disj {Atom carry(ball13, left) (var1(1)->4), Atom carry(ball13, right) (var2(2)->4)} Achievers (4, 2)
+		->_nat LM 4 Atom at(ball13, roomb) (var7(7)->1)(goal) Achievers (2, 2)
+
+LM 3 Atom at(ball12, roomb) (var6(6)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 28 disj {Atom carry(ball12, left) (var1(1)->3), Atom carry(ball12, right) (var2(2)->3)} Achievers (4, 2)
+		<-_nat LM 27 Atom at(ball12, rooma) (var6(6)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 27 Atom at(ball12, rooma) (var6(6)->0) Achievers (2, 2)
+		->_gn  LM 28 disj {Atom carry(ball12, left) (var1(1)->3), Atom carry(ball12, right) (var2(2)->3)} Achievers (4, 2)
+		->_nat LM 3 Atom at(ball12, roomb) (var6(6)->1)(goal) Achievers (2, 2)
+
+LM 2 Atom at(ball11, roomb) (var5(5)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 26 disj {Atom carry(ball11, left) (var1(1)->2), Atom carry(ball11, right) (var2(2)->2)} Achievers (4, 2)
+		<-_nat LM 25 Atom at(ball11, rooma) (var5(5)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 25 Atom at(ball11, rooma) (var5(5)->0) Achievers (2, 2)
+		->_gn  LM 26 disj {Atom carry(ball11, left) (var1(1)->2), Atom carry(ball11, right) (var2(2)->2)} Achievers (4, 2)
+		->_nat LM 2 Atom at(ball11, roomb) (var5(5)->1)(goal) Achievers (2, 2)
+
+LM 1 Atom at(ball10, roomb) (var4(4)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 24 disj {Atom carry(ball10, left) (var1(1)->1), Atom carry(ball10, right) (var2(2)->1)} Achievers (4, 2)
+		<-_nat LM 23 Atom at(ball10, rooma) (var4(4)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 23 Atom at(ball10, rooma) (var4(4)->0) Achievers (2, 2)
+		->_gn  LM 24 disj {Atom carry(ball10, left) (var1(1)->1), Atom carry(ball10, right) (var2(2)->1)} Achievers (4, 2)
+		->_nat LM 1 Atom at(ball10, roomb) (var4(4)->1)(goal) Achievers (2, 2)
+
+LM 0 Atom at(ball1, roomb) (var3(3)->1)(goal) Achievers (2, 2)
+		<-_gn  LM 22 disj {Atom carry(ball1, left) (var1(1)->0), Atom carry(ball1, right) (var2(2)->0)} Achievers (4, 2)
+		<-_nat LM 21 Atom at(ball1, rooma) (var3(3)->0) Achievers (2, 2)
+		<-_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+
+LM 21 Atom at(ball1, rooma) (var3(3)->0) Achievers (2, 2)
+		->_gn  LM 22 disj {Atom carry(ball1, left) (var1(1)->0), Atom carry(ball1, right) (var2(2)->0)} Achievers (4, 2)
+		->_nat LM 0 Atom at(ball1, roomb) (var3(3)->1)(goal) Achievers (2, 2)
+
+LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+		<-_gn  LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 19 Atom at(ball9, roomb) (var22(22)->1)(goal) Achievers (2, 2)
+		->_gn  LM 18 Atom at(ball8, roomb) (var21(21)->1)(goal) Achievers (2, 2)
+		->_gn  LM 17 Atom at(ball7, roomb) (var20(20)->1)(goal) Achievers (2, 2)
+		->_gn  LM 13 Atom at(ball3, roomb) (var16(16)->1)(goal) Achievers (2, 2)
+		->_gn  LM 16 Atom at(ball6, roomb) (var19(19)->1)(goal) Achievers (2, 2)
+		->_gn  LM 4 Atom at(ball13, roomb) (var7(7)->1)(goal) Achievers (2, 2)
+		->_gn  LM 12 Atom at(ball20, roomb) (var15(15)->1)(goal) Achievers (2, 2)
+		->_gn  LM 14 Atom at(ball4, roomb) (var17(17)->1)(goal) Achievers (2, 2)
+		->_gn  LM 1 Atom at(ball10, roomb) (var4(4)->1)(goal) Achievers (2, 2)
+		->_gn  LM 15 Atom at(ball5, roomb) (var18(18)->1)(goal) Achievers (2, 2)
+		->_gn  LM 2 Atom at(ball11, roomb) (var5(5)->1)(goal) Achievers (2, 2)
+		->_gn  LM 3 Atom at(ball12, roomb) (var6(6)->1)(goal) Achievers (2, 2)
+		->_gn  LM 11 Atom at(ball2, roomb) (var14(14)->1)(goal) Achievers (2, 2)
+		->_gn  LM 5 Atom at(ball14, roomb) (var8(8)->1)(goal) Achievers (2, 2)
+		->_gn  LM 6 Atom at(ball15, roomb) (var9(9)->1)(goal) Achievers (2, 2)
+		->_gn  LM 7 Atom at(ball16, roomb) (var10(10)->1)(goal) Achievers (2, 2)
+		->_gn  LM 8 Atom at(ball17, roomb) (var11(11)->1)(goal) Achievers (2, 2)
+		->_gn  LM 0 Atom at(ball1, roomb) (var3(3)->1)(goal) Achievers (2, 2)
+		->_gn  LM 9 Atom at(ball18, roomb) (var12(12)->1)(goal) Achievers (2, 2)
+		->_gn  LM 10 Atom at(ball19, roomb) (var13(13)->1)(goal) Achievers (2, 2)
+
+LM 61 Atom at-robby(rooma) (var0(0)->0) Achievers (1, 1)
+		->_gn  LM 60 disj {Atom carry(ball9, left) (var1(1)->19), Atom carry(ball9, right) (var2(2)->19)} Achievers (4, 2)
+		->_gn  LM 58 disj {Atom carry(ball8, left) (var1(1)->18), Atom carry(ball8, right) (var2(2)->18)} Achievers (4, 2)
+		->_gn  LM 56 disj {Atom carry(ball7, left) (var1(1)->17), Atom carry(ball7, right) (var2(2)->17)} Achievers (4, 2)
+		->_gn  LM 54 disj {Atom carry(ball6, left) (var1(1)->16), Atom carry(ball6, right) (var2(2)->16)} Achievers (4, 2)
+		->_gn  LM 50 disj {Atom carry(ball4, left) (var1(1)->14), Atom carry(ball4, right) (var2(2)->14)} Achievers (4, 2)
+		->_gn  LM 48 disj {Atom carry(ball3, left) (var1(1)->13), Atom carry(ball3, right) (var2(2)->13)} Achievers (4, 2)
+		->_gn  LM 22 disj {Atom carry(ball1, left) (var1(1)->0), Atom carry(ball1, right) (var2(2)->0)} Achievers (4, 2)
+		->_gn  LM 38 disj {Atom carry(ball17, left) (var1(1)->8), Atom carry(ball17, right) (var2(2)->8)} Achievers (4, 2)
+		->_gn  LM 24 disj {Atom carry(ball10, left) (var1(1)->1), Atom carry(ball10, right) (var2(2)->1)} Achievers (4, 2)
+		->_gn  LM 40 disj {Atom carry(ball18, left) (var1(1)->9), Atom carry(ball18, right) (var2(2)->9)} Achievers (4, 2)
+		->_gn  LM 26 disj {Atom carry(ball11, left) (var1(1)->2), Atom carry(ball11, right) (var2(2)->2)} Achievers (4, 2)
+		->_gn  LM 42 disj {Atom carry(ball19, left) (var1(1)->10), Atom carry(ball19, right) (var2(2)->10)} Achievers (4, 2)
+		->_gn  LM 28 disj {Atom carry(ball12, left) (var1(1)->3), Atom carry(ball12, right) (var2(2)->3)} Achievers (4, 2)
+		->_gn  LM 44 disj {Atom carry(ball2, left) (var1(1)->11), Atom carry(ball2, right) (var2(2)->11)} Achievers (4, 2)
+		->_gn  LM 30 disj {Atom carry(ball13, left) (var1(1)->4), Atom carry(ball13, right) (var2(2)->4)} Achievers (4, 2)
+		->_gn  LM 46 disj {Atom carry(ball20, left) (var1(1)->12), Atom carry(ball20, right) (var2(2)->12)} Achievers (4, 2)
+		->_gn  LM 20 Atom at-robby(roomb) (var0(0)->1) Achievers (1, 1)
+		->_gn  LM 32 disj {Atom carry(ball14, left) (var1(1)->5), Atom carry(ball14, right) (var2(2)->5)} Achievers (4, 2)
+		->_gn  LM 52 disj {Atom carry(ball5, left) (var1(1)->15), Atom carry(ball5, right) (var2(2)->15)} Achievers (4, 2)
+		->_gn  LM 34 disj {Atom carry(ball15, left) (var1(1)->6), Atom carry(ball15, right) (var2(2)->6)} Achievers (4, 2)
+		->_gn  LM 36 disj {Atom carry(ball16, left) (var1(1)->7), Atom carry(ball16, right) (var2(2)->7)} Achievers (4, 2)
+
+Landmark graph end.
+############################################################################
+Peak memory: 10016 KB
+Remove intermediate file output.sas
+
+search exit code: 0

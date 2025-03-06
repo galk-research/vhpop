@@ -1,0 +1,133 @@
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: None
+INFO     translator memory limit: None
+INFO     translator command line string: /usr/bin/python3 /home/neria/final-project/MODDED_FD/builds/release/bin/translate/translate.py examples/grid-domain.pddl examples/simple-grid1.pddl --sas-file output.sas
+Parsing...
+Parsing: [0.000s CPU, 0.005s wall-clock]
+Normalizing task... [0.000s CPU, 0.000s wall-clock]
+Instantiating...
+Generating Datalog program... [0.000s CPU, 0.001s wall-clock]
+Normalizing Datalog program...
+Normalizing Datalog program: [0.000s CPU, 0.003s wall-clock]
+Preparing model... [0.010s CPU, 0.002s wall-clock]
+Generated 46 rules.
+Computing model... [0.000s CPU, 0.002s wall-clock]
+149 relevant atoms
+214 auxiliary atoms
+363 final queue length
+415 total queue pushes
+Completing instantiation... [0.000s CPU, 0.001s wall-clock]
+Instantiating: [0.010s CPU, 0.010s wall-clock]
+Computing fact groups...
+Finding invariants...
+12 initial candidates
+Finding invariants: [0.000s CPU, 0.004s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.001s wall-clock]
+Instantiating groups... [0.000s CPU, 0.000s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.000s wall-clock]
+Choosing groups...
+1 uncovered facts
+Choosing groups: [0.010s CPU, 0.000s wall-clock]
+Building translation key... [0.000s CPU, 0.000s wall-clock]
+Computing fact groups: [0.010s CPU, 0.005s wall-clock]
+Building STRIPS to SAS dictionary... [0.000s CPU, 0.000s wall-clock]
+Building dictionary for full mutex groups... [0.000s CPU, 0.000s wall-clock]
+Building mutex information...
+Building mutex information: [0.000s CPU, 0.000s wall-clock]
+Translating task...
+Processing axioms...
+Simplifying axioms... [0.000s CPU, 0.000s wall-clock]
+Processing axioms: [0.000s CPU, 0.000s wall-clock]
+Translating task: [0.000s CPU, 0.001s wall-clock]
+9 effect conditions simplified
+0 implied preconditions added
+Detecting unreachable propositions...
+0 operators removed
+0 axioms removed
+29 propositions removed
+Detecting unreachable propositions: [0.000s CPU, 0.000s wall-clock]
+Reordering and filtering variables...
+3 of 3 variables necessary.
+1 of 3 mutex groups necessary.
+42 of 42 operators necessary.
+0 of 0 axiom rules necessary.
+Reordering and filtering variables: [0.000s CPU, 0.000s wall-clock]
+Translator variables: 3
+Translator derived variables: 0
+Translator facts: 21
+Translator goal facts: 1
+Translator mutex groups: 1
+Translator total mutex groups size: 2
+Translator operators: 42
+Translator axioms: 0
+Translator task size: 198
+Translator peak memory: 28672 KB
+Writing output... [0.000s CPU, 0.000s wall-clock]
+Done! [0.020s CPU, 0.024s wall-clock]
+
+translate exit code: 0
+INFO     Running search (release).
+INFO     search stdin: output.sas
+INFO     search time limit: None
+INFO     search memory limit: None
+INFO     search command line string: /home/neria/final-project/MODDED_FD/builds/release/bin/downward --if-unit-cost --evaluator 'hlm=lmcount(lm_rhw(reasonable_orders=true),pref=true)' --evaluator 'hff=ff()' --search 'iterated([lazy_greedy([hff,hlm],preferred=[hff,hlm]),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=5),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=3),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=2),lazy_wastar([hff,hlm],preferred=[hff,hlm],w=1)],repeat_last=true,continue_on_fail=true)' --if-non-unit-cost --evaluator 'hlm1=lmcount(lm_rhw(reasonable_orders=true),transform=adapt_costs(one),pref=true)' --evaluator 'hff1=ff(transform=adapt_costs(one))' --evaluator 'hlm2=lmcount(lm_rhw(reasonable_orders=true),transform=adapt_costs(plusone),pref=true)' --evaluator 'hff2=ff(transform=adapt_costs(plusone))' --search 'iterated([lazy_greedy([hff1,hlm1],preferred=[hff1,hlm1],cost_type=one,reopen_closed=false),lazy_greedy([hff2,hlm2],preferred=[hff2,hlm2],reopen_closed=false),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=5),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=3),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=2),lazy_wastar([hff2,hlm2],preferred=[hff2,hlm2],w=1)],repeat_last=true,continue_on_fail=true)' --always --internal-plan-file sas_plan < output.sas
+reading input... [t=5.5e-05s]
+done reading input! [t=0.000682s]
+Initializing landmarks count heuristic...
+Initializing Exploration...
+Generating landmarks using the RPG/SAS+ approach
+approx. reasonable orders
+approx. obedient reasonable orders
+Removed 0 reasonable or obedient reasonable orders
+Landmarks generation time: 0.0001848s
+Discovered 8 landmarks, of which 1 are disjunctive and 0 are conjunctive 
+12 edges
+############################################################################
+Landmark graph: 
+LM 7 disj {Atom at-robot(node1-2) (var0(0)->5), Atom at-robot(node2-1) (var0(0)->7)} Achievers (6, 4)
+		->_nat LM 0 Atom at(key1, node2-2) (var2(2)->8)(goal) Achievers (1, 1)
+		->_gn  LM 2 Atom at-robot(node2-2) (var0(0)->8) Achievers (2, 2)
+
+LM 1 Atom holding(key1) (var2(2)->9) Achievers (9, 1)
+		<-_gn  LM 5 Atom at-robot(node1-1) (var0(0)->4) Achievers (4, 4)
+		<-_gn  LM 4 Atom arm-empty() (var1(1)->0) Achievers (9, 9)
+		<-_gn  LM 3 Atom at(key1, node1-1) (var2(2)->4) Achievers (1, 1)
+		->_gn  LM 0 Atom at(key1, node2-2) (var2(2)->8)(goal) Achievers (1, 1)
+
+LM 0 Atom at(key1, node2-2) (var2(2)->8)(goal) Achievers (1, 1)
+		<-_nat LM 7 disj {Atom at-robot(node1-2) (var0(0)->5), Atom at-robot(node2-1) (var0(0)->7)} Achievers (6, 4)
+		<-_nat LM 5 Atom at-robot(node1-1) (var0(0)->4) Achievers (4, 4)
+		<-_nat LM 3 Atom at(key1, node1-1) (var2(2)->4) Achievers (1, 1)
+		<-_gn  LM 2 Atom at-robot(node2-2) (var0(0)->8) Achievers (2, 2)
+		<-_gn  LM 1 Atom holding(key1) (var2(2)->9) Achievers (9, 1)
+
+LM 3 Atom at(key1, node1-1) (var2(2)->4) Achievers (1, 1)
+		->_gn  LM 1 Atom holding(key1) (var2(2)->9) Achievers (9, 1)
+		->_nat LM 0 Atom at(key1, node2-2) (var2(2)->8)(goal) Achievers (1, 1)
+
+LM 4 Atom arm-empty() (var1(1)->0) Achievers (9, 9)
+		->_gn  LM 1 Atom holding(key1) (var2(2)->9) Achievers (9, 1)
+
+LM 2 Atom at-robot(node2-2) (var0(0)->8) Achievers (2, 2)
+		<-_r   LM 5 Atom at-robot(node1-1) (var0(0)->4) Achievers (4, 4)
+		<-_gn  LM 7 disj {Atom at-robot(node1-2) (var0(0)->5), Atom at-robot(node2-1) (var0(0)->7)} Achievers (6, 4)
+		<-_nat LM 6 Atom at-robot(node0-0) (var0(0)->0) Achievers (2, 2)
+		->_gn  LM 0 Atom at(key1, node2-2) (var2(2)->8)(goal) Achievers (1, 1)
+
+LM 5 Atom at-robot(node1-1) (var0(0)->4) Achievers (4, 4)
+		<-_nat LM 6 Atom at-robot(node0-0) (var0(0)->0) Achievers (2, 2)
+		->_r   LM 2 Atom at-robot(node2-2) (var0(0)->8) Achievers (2, 2)
+		->_nat LM 0 Atom at(key1, node2-2) (var2(2)->8)(goal) Achievers (1, 1)
+		->_gn  LM 1 Atom holding(key1) (var2(2)->9) Achievers (9, 1)
+
+LM 6 Atom at-robot(node0-0) (var0(0)->0) Achievers (2, 2)
+		->_nat LM 5 Atom at-robot(node1-1) (var0(0)->4) Achievers (4, 4)
+		->_nat LM 2 Atom at-robot(node2-2) (var0(0)->8) Achievers (2, 2)
+
+Landmark graph end.
+############################################################################
+Peak memory: 9884 KB
+Remove intermediate file output.sas
+
+search exit code: 0
