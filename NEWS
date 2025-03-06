@@ -1,3 +1,10 @@
+Version 3.0.1 (January 2025):
+
+* Added GBFS (Greedy Best-First Search) heuristic algorithm option.
+* Improved installation notes for current linux (ubuntu/mint)
+  * Pre-requisite packages to be installed
+* Installation now generates the file "compile_commands.json", needed by some IDEs (e.g., vscode, vim using clangd)
+
 Version 2.2 (Mar 1, 2003):
 
 * Added -S option for specifying seed to random number generator.

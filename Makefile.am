@@ -62,7 +62,10 @@ TESTS = $(check_PROGRAMS)
 
 # Miscellaneous settings.
 
-MAINTAINERCLEANFILES = pddl.cc tokens.cc
+BEAR = bear
+
+
+MAINTAINERCLEANFILES = pddl.cc tokens.cc compile_commands.json
 
 EXTRA_DIST = ipc3-vhpop examples scripts src/vhpop_regtest.sh src/testdata
 
@@ -73,3 +76,7 @@ AM_CXXFLAGS = -Wall -Werror
 AM_YFLAGS = -d
 
 ACLOCAL_AMFLAGS = -I m4
+
+compile_commands.json: $(vhpop_SOURCES)
+	$(MAKE) clean
+	$(BEAR) -- $(MAKE) all

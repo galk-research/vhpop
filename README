@@ -1,5 +1,5 @@
-VHPOP 3.0
-=========
+VHPOP 3.0.1
+===========
 
 VHPOP is a versatile heuristic partial order planner loosely based on
 UCPOP with the following main features:
@@ -33,9 +33,9 @@ Search Algorithms
 You can select the search algorithms to use with the -s flag.  The
 options are as follows:
 
-  GBFS for GBFS
+  GBFS for GBFS, Greedy Best-First Search
   A for A*.
-  IDA for IDA*.
+  IDA for IDA*, Iterative-Deepening A*.
   HC for hill climbing.
 
 
@@ -171,6 +171,8 @@ regardless of which flaw selection strategy was used.
 
 Plans for Future Improvements
 -----------------------------
+
+* Add use of landmarks in the planning process
 
 * Add better support for plan optimization metric (currently ignored).
 
