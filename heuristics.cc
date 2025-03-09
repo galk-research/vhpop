@@ -2035,6 +2035,28 @@ int FlawSelectionOrder::select_open_cond(FlawSelection& selection,
 const Flaw& FlawSelectionOrder::select(const Plan& plan,
                                        const Problem& problem,
                                        const PlanningGraph* pg) const {
+  if (verbosity >= 4) {
+    std::cerr << endl << endl;
+    std::cerr << "Selecting a flaw from" << std::endl;
+    for (const Chain<Unsafe>* uc = plan.unsafes(); uc != NULL; uc = uc->tail) {
+      const Unsafe& unsafe = uc->head;
+      std::cerr << "\t";
+      unsafe.print(std::cerr, Bindings::EMPTY);
+      std::cerr << std::endl;
+    }
+    for (const Chain<OpenCondition>* occ = plan.open_conds(); occ != NULL; occ = occ->tail) {
+    const OpenCondition& open_cond = occ->head;
+      std::cerr << "\t";
+      open_cond.print(std::cerr, Bindings::EMPTY);
+      std::cerr << std::endl;
+    }
+    for (const Chain<MutexThreat>* mtc = plan.mutex_threats(); mtc != NULL; mtc = mtc->tail) {
+      const MutexThreat& open_cond = mtc->head;
+        std::cerr << "\t";
+        open_cond.print(std::cerr, Bindings::EMPTY);
+        std::cerr << std::endl;
+      }
+  }
   FlawSelection selection;
   selection.flaw = NULL;
   selection.criterion = std::numeric_limits<int>::max();

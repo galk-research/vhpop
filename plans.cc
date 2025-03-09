@@ -518,10 +518,10 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
       
       Action* dummy_action;
       if (params->ground_actions) {
-        dummy_action = new GroundAction("LM_" + step_id, false);
+        dummy_action = new GroundAction("Landmark " + std::to_string(step_id), false);
         dummy_action->set_condition(*lm->formula);
       } else {
-        dummy_action = new ActionSchema("LM_" + step_id, false);
+        dummy_action = new ActionSchema("Landmark " + std::to_string(step_id), false);
         dummy_action->set_condition(*lm->formula);
       }
       Step dummy_step = Step(step_id, *dummy_action);
@@ -2129,6 +2129,8 @@ std::ostream& operator<<(std::ostream& os, const Plan& p) {
       goal = &step;
     } else if (step.id() > p.landmark_steps()) {
       ordered_steps.push_back(&step);
+    } else if (verbosity >= 2) {
+      ordered_steps.push_back(&step);
     }
   }
   std::map<size_t, float> start_times;
@@ -2195,7 +2197,7 @@ std::ostream& operator<<(std::ostream& os, const Plan& p) {
       const Step& step = **si;
       if (step.id() == Plan::GOAL_ID) {
         os << std::endl << std::endl << "Goal     : ";
-      } else {
+      } else if (step.id()){
         os << std::endl << std::endl << "Step " << step.id();
         if (step.id() < 100) {
           if (step.id() < 10) {
