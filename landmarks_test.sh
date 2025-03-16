@@ -77,7 +77,7 @@ for pair in "${file_pairs[@]}"; do
     python3 $landmark_extraction_path --alias seq-sat-lama-2011 $domain $problem > $tmp1
 
 
-    landmarks_cmd="./vhpop -g -v1 -m $tmp1 $h $f $domain $problem"
+    landmarks_cmd="./vhpop -g -v1 --landmark-file=$tmp1 $h $f $domain $problem"
     no_landmarks_cmd="./vhpop -g -v1 $h $f $domain $problem"
 
 

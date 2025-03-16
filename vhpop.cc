@@ -73,6 +73,7 @@ static struct option long_options[] = {
   { "verbose", optional_argument, NULL, 'v' },
   { "warnings", optional_argument, NULL, 'W' },
   { "weight", required_argument, NULL, 'w' },
+  { "landmark-file", required_argument, NULL, 'm' },
   { 0, 0, 0, 0 }
 };
 static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:";
@@ -129,7 +130,7 @@ static void display_help() {
             << "\t\t\t  2 treats warnings as errors" << std::endl
             << "  -w,    --weight=w\t"
             << "weight to use with heuristic (default is 1)" << std::endl
-            << "  -m filename\t\t"
+            << "  -m filename, --landmark-file=filename\t"
             << "use landmarks from the specified file" << std::endl
             << "  file ...\t\t"
             << "files containing domain and problem descriptions;" << std::endl
