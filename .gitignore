@@ -8,6 +8,8 @@ vhpop-*.*/
 *.trs
 src/*_test
 
+.cache/
+
 # Automake files.
 Makefile.in
 .deps/
@@ -32,6 +34,7 @@ ltversion.m4
 
 # Generated Makefile.
 Makefile
+compile_commands.json
 !gtest/make/Makefile
 !gtest/scripts/test/Makefile
 
