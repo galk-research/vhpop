@@ -822,7 +822,7 @@ const Plan* Plan::plan(const Problem& problem, const Parameters& p,
                 new Plan(current_plan->steps(), current_plan->num_steps(),
                          current_plan->links(), current_plan->num_links(),
                          current_plan->orderings(), *new_bindings,
-                         NULL, 0, NULL, 0, NULL, current_plan, current_plan->landmark_steps());
+                         NULL, 0, NULL, 0, NULL, current_plan, current_plan->num_landmarks());
               delete current_plan;
               current_plan = inst_plan;
             }
@@ -908,13 +908,13 @@ Plan::Plan(const Chain<Step>* steps, size_t num_steps,
            const Orderings& orderings, const Bindings& bindings,
            const Chain<Unsafe>* unsafes, size_t num_unsafes,
            const Chain<OpenCondition>* open_conds, size_t num_open_conds,
-           const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t landmark_steps)
+           const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t num_landmarks)
   : steps_(steps), num_steps_(num_steps),
     links_(links), num_links_(num_links),
     orderings_(&orderings), bindings_(&bindings),
     unsafes_(unsafes), num_unsafes_(num_unsafes),
     open_conds_(open_conds), num_open_conds_(num_open_conds),
-    mutex_threats_(mutex_threats), landmark_steps_(landmark_steps) {
+    mutex_threats_(mutex_threats), num_landmarks_(num_landmarks) {
   RCObject::ref(steps);
   RCObject::ref(links);
   Orderings::register_use(&orderings);
@@ -1082,7 +1082,7 @@ void Plan::handle_unsafe(PlanList& plans, const Unsafe& unsafe) const {
                              orderings(), *bindings_,
                              unsafes()->remove(unsafe), num_unsafes() - 1,
                              open_conds(), num_open_conds(),
-                             mutex_threats(), this, landmark_steps()));
+                             mutex_threats(), this, num_landmarks()));
   }
 }
 
@@ -1192,7 +1192,7 @@ int Plan::separate(PlanList& plans, const Unsafe& unsafe,
                                    unsafes()->remove(unsafe),
                                    num_unsafes() - 1,
                                    new_open_conds, new_num_open_conds,
-                                   mutex_threats(), this, landmark_steps()));
+                                   mutex_threats(), this, num_landmarks()));
         } else {
           Bindings::register_use(bindings);
           Bindings::unregister_use(bindings);
@@ -1255,7 +1255,7 @@ void Plan::new_ordering(PlanList& plans, size_t before_id, StepTime t1,
                              *new_orderings, *bindings_,
                              unsafes()->remove(unsafe), num_unsafes() - 1,
                              open_conds(), num_open_conds(),
-                             mutex_threats(), this, landmark_steps()));
+                             mutex_threats(), this, num_landmarks()));
   }
 }
 
@@ -1272,7 +1272,7 @@ void Plan::handle_mutex_threat(PlanList& plans,
     plans.push_back(new Plan(steps(), num_steps(), links(), num_links(),
                              orderings(), *bindings_, unsafes(), num_unsafes(),
                              open_conds(), num_open_conds(),
-                             new_mutex_threats, this, landmark_steps()));
+                             new_mutex_threats, this, num_landmarks()));
     return;
   }
   BindingList unifier;
@@ -1293,7 +1293,7 @@ void Plan::handle_mutex_threat(PlanList& plans,
     plans.push_back(new Plan(steps(), num_steps(), links(), num_links(),
                              orderings(), *bindings_, unsafes(), num_unsafes(),
                              open_conds(), num_open_conds(),
-                             mutex_threats()->remove(mutex_threat), this, landmark_steps()));
+                             mutex_threats()->remove(mutex_threat), this, num_landmarks()));
   }
 }
 
@@ -1333,7 +1333,7 @@ void Plan::separate(PlanList& plans, const MutexThreat& mutex_threat,
                                  num_links(), orderings(), *bindings,
                                  unsafes(), num_unsafes(),
                                  new_open_conds, new_num_open_conds,
-                                 mutex_threats()->remove(mutex_threat), this, landmark_steps()));
+                                 mutex_threats()->remove(mutex_threat), this, num_landmarks()));
       } else {
         Bindings::register_use(bindings);
         Bindings::unregister_use(bindings);
@@ -1397,7 +1397,7 @@ void Plan::separate(PlanList& plans, const MutexThreat& mutex_threat,
                                      unsafes(), num_unsafes(),
                                      new_open_conds, new_num_open_conds,
                                      mutex_threats()->remove(mutex_threat),
-                                     this, landmark_steps()));
+                                     this, num_landmarks()));
           } else {
             Bindings::register_use(bindings);
             Bindings::unregister_use(bindings);
@@ -1447,7 +1447,7 @@ void Plan::new_ordering(PlanList& plans, size_t before_id, StepTime t1,
                              *new_orderings, *bindings_,
                              unsafes(), num_unsafes(),
                              open_conds(), num_open_conds(),
-                             mutex_threats()->remove(mutex_threat), this, landmark_steps()));
+                             mutex_threats()->remove(mutex_threat), this, num_landmarks()));
   }
 }
 
@@ -1584,7 +1584,7 @@ int Plan::handle_disjunction(PlanList& plans, const Disjunction& disj,
                                    orderings(), *bindings,
                                    unsafes(), num_unsafes(),
                                    new_open_conds, new_num_open_conds,
-                                   mutex_threats(), this, landmark_steps()));
+                                   mutex_threats(), this, num_landmarks()));
         }
         count++;
       }
@@ -1633,7 +1633,7 @@ int Plan::handle_inequality(PlanList& plans, const Inequality& neq,
                                  unsafes(), num_unsafes(),
                                  open_conds()->remove(open_cond),
                                  num_open_conds() - 1,
-                                 mutex_threats(), this, landmark_steps()));
+                                 mutex_threats(), this, num_landmarks()));
       }
       count++;
     }
@@ -1827,7 +1827,7 @@ int Plan::new_cw_link(PlanList& plans, const EffectList& effects,
                                  orderings(), *bindings,
                                  new_unsafes, new_num_unsafes,
                                  new_open_conds, new_num_open_conds,
-                                 mutex_threats(), this, landmark_steps()));
+                                 mutex_threats(), this, num_landmarks()));
       }
       count++;
     }
@@ -2011,7 +2011,7 @@ int Plan::make_link(PlanList& plans, const Step& step, const Effect& effect,
                              num_links() + 1, *new_orderings, *bindings,
                              new_unsafes, new_num_unsafes,
                              new_open_conds, new_num_open_conds,
-                             new_mutex_threats, this, landmark_steps()));
+                             new_mutex_threats, this, num_landmarks()));
   }
   return 1;
 }
@@ -2126,7 +2126,7 @@ std::ostream& operator<<(std::ostream& os, const Plan& p) {
       init = &step;
     } else if (step.id() == Plan::GOAL_ID) {
       goal = &step;
-    } else if (step.id() > p.landmark_steps()) {
+    } else if (step.id() > p.num_landmarks()) {
       ordered_steps.push_back(&step);
     } else if (verbosity >= 2) {
       ordered_steps.push_back(&step);

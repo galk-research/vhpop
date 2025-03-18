@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG
             std::cerr << "Depth of solution: " << plan->depth() << std::endl;
 #endif
-            std::cerr << "Number of steps: " << plan->num_steps() - plan->landmark_steps() << std::endl;
+            std::cerr << "Number of steps: " << plan->num_steps() - plan->num_landmarks() << std::endl;
           }
           std::cout << *plan << std::endl;
         } else {

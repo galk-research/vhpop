@@ -77,12 +77,8 @@ functions:
   ADDR is like ADD, but tries to take reuse into account.
   ADDR_COST uses the ADDR cost heuristic.
   ADDR_WORK uses the ADDR work heuristic.
-  MAX uses the max heuristic.
-  MAX_COST uses the max cost heuristic.
-  MAX_WORK uses the max work heuristic.
-  MAXR is like MAX, but tries to take reuse into account.
-  MAXR_COST uses the MAXR cost heuristic.
-  MAXR_WORK uses the MAXR work heuristic.
+  PL uses h(p) = |S(p)| - |Landmarks(p)| for plan p.
+  PL+L uses h(p) = |S(p)| for plan p.
 
 
 Flaw Selection
