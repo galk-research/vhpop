@@ -143,6 +143,8 @@ struct PlanningGraph {
   /* Constructs a planning graph. */
   PlanningGraph(const Problem& problem, const Parameters& params);
 
+  void add_achiever(const GroundAction& action);
+
   /* Deletes this planning graph. */
   ~PlanningGraph();
 

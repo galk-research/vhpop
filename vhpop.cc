@@ -74,9 +74,10 @@ static struct option long_options[] = {
   { "warnings", optional_argument, NULL, 'W' },
   { "weight", required_argument, NULL, 'w' },
   { "landmark-file", required_argument, NULL, 'm' },
+  { "landmark-effects", no_argument, NULL, 'e' },
   { 0, 0, 0, 0 }
 };
-static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:";
+static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:e";
 
 
 /* Displays help. */
@@ -132,6 +133,8 @@ static void display_help() {
             << "weight to use with heuristic (default is 1)" << std::endl
             << "  -m filename, --landmark-file=filename\t"
             << "use landmarks from the specified file" << std::endl
+            << "  -e,    --landmark_effects" << std::endl
+            << "\t\t\tadd effects to landmarks" << std::endl
             << "  file ...\t\t"
             << "files containing domain and problem descriptions;" << std::endl
             << "\t\t\t  if none, descriptions are read from standard input"
@@ -306,6 +309,9 @@ int main(int argc, char* argv[]) {
     case 'm':
       landmark_file = optarg;
       params.landmarks = true;
+      break;
+    case 'e':
+      params.landmark_effects = true;
       break;
     case ':':
     default:

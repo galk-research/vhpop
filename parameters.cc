@@ -52,7 +52,8 @@ Parameters::Parameters()
       ground_actions(false),
       domain_constraints(false),
       keep_static_preconditions(true),
-      landmarks(false) {
+      landmarks(false),
+      landmark_effects(false) {
   flaw_orders.push_back(FlawSelectionOrder("UCPOP")),
   search_limits.push_back(std::numeric_limits<unsigned int>::max());
 }

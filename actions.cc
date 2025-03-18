@@ -60,7 +60,37 @@ void Action::set_condition(const Formula& condition) {
   }
 }
 
-void Action::add_effect(const Effect& effect) { effects_.push_back(&effect); }
+void Action::add_effect(const Effect& effect) { 
+  effects_.push_back(&effect);
+}
+
+void Action::add_effect(const Formula& effect) {
+  std::vector<const Formula*> effects(1, &effect);
+
+  while (!effects.empty()) {
+    const Formula* effect = effects.back();
+    effects.pop_back();
+
+    if (typeid(*effect) == typeid(Conjunction)) {
+      const Conjunction* conj = dynamic_cast<const Conjunction*>(effect);
+      const FormulaList& gs = conj->conjuncts();
+      for (FormulaList::const_iterator fi = gs.begin();
+            fi != gs.end(); fi++) {
+        effects.push_back(*fi);
+      }
+    } else if (typeid(*effect) == typeid(Conjunction)) {
+      continue;
+    } else if (typeid(*effect) == typeid(Atom)) {
+      const Literal* l = dynamic_cast<const Literal*>(effect);
+      const Effect* new_effect = new Effect(*l, Effect::AT_END);
+      add_effect(*new_effect);
+    } else if (typeid(*effect) == typeid(Atom)) {
+      const Literal* l = dynamic_cast<const Literal*>(effect);
+      const Effect* new_effect = new Effect(*l, Effect::AT_END);
+      add_effect(*new_effect);
+    }
+  }
+}
 
 void Action::set_min_duration(const Expression& min_duration) {
   const Expression& md = Maximum::make(*min_duration_, min_duration);

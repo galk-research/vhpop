@@ -52,7 +52,7 @@ static const Domain* domain = NULL;
 /* Problem currently being solved. */
 static const Problem* problem = NULL;
 /* Planning graph. */
-static const PlanningGraph* planning_graph;
+static PlanningGraph* planning_graph;
 /* The goal action. */
 static Action* goal_action;
 /* Maps predicates to actions. */
@@ -504,9 +504,13 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
     orderings = new BinaryOrderings();
   }
 
+  vector<const Action*>* landmarks = nullptr;
+
   // insert landmarks into the initial plan to guide the planner
   if (params->landmarks) {
+    landmarks = new vector<const Action*>();
     vector<Step> steps_map;
+
     // adding a dummy action for each landmark
     for (int i = 0; i < lm_graph.num_landmarks; i++) {
       Landmark* lm = &(lm_graph.landmarks[i]);
@@ -529,6 +533,17 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
       lm->set_id(step_id);
 
       add_goal(open_conds, num_open_conds, new_bindings, dummy_action->condition(), step_id);
+      
+      if (params->landmark_effects) {
+        dummy_action->add_effect(dummy_action->condition());
+
+        if (params->ground_actions) {
+          GroundAction* ga = dynamic_cast<GroundAction*>(dummy_action);
+          planning_graph->add_achiever(*ga);
+        }
+      }
+
+      landmarks->push_back(dummy_action);
       
       // adding the dummy actions to the orderings
       orderings = orderings->refine(Ordering(step_id, StepTime::AT_START, GOAL_ID, StepTime::AT_START),
@@ -553,7 +568,7 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
 
   /* Return initial plan. */
   return new Plan(steps, num_steps, NULL, 0, *orderings, *bindings,
-                  NULL, 0, open_conds, num_open_conds, mutex_threats, NULL, params->landmarks ? num_steps : 0);
+                  NULL, 0, open_conds, num_open_conds, mutex_threats, NULL, params->landmarks ? num_steps : 0, landmarks);
 }
 
 
@@ -645,6 +660,21 @@ const Plan* Plan::plan(const Problem& problem, const Parameters& p,
   if (initial_plan != NULL) {
     initial_plan->id_ = 0;
   }
+
+  // update the achivers with the landmarks dummy actions if needed
+  if (params->landmarks && params->landmark_effects && !params->ground_actions) {
+    for (const Action* action : *initial_plan->landmarks_) {
+      for (EffectList::const_iterator ei = action->effects().begin(); ei != action->effects().end(); ei++) {
+        const Literal& literal = (*ei)->literal();
+        if (typeid(literal) == typeid(Atom)) {
+          achieves_pred[literal.predicate()].insert(std::make_pair(action, *ei));
+        } else {
+          achieves_neg_pred[literal.predicate()].insert(std::make_pair(action, *ei));
+        }
+      }
+    }
+  }
+
   /* Variable for progress bar (number of generated plans). */
   size_t last_dot = 0;
   /* Variable for progress bar (time). */
@@ -908,13 +938,13 @@ Plan::Plan(const Chain<Step>* steps, size_t num_steps,
            const Orderings& orderings, const Bindings& bindings,
            const Chain<Unsafe>* unsafes, size_t num_unsafes,
            const Chain<OpenCondition>* open_conds, size_t num_open_conds,
-           const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t num_landmarks)
+           const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t num_landmarks, vector<const Action*>* landmarks)
   : steps_(steps), num_steps_(num_steps),
     links_(links), num_links_(num_links),
     orderings_(&orderings), bindings_(&bindings),
     unsafes_(unsafes), num_unsafes_(num_unsafes),
     open_conds_(open_conds), num_open_conds_(num_open_conds),
-    mutex_threats_(mutex_threats), num_landmarks_(num_landmarks) {
+    mutex_threats_(mutex_threats), num_landmarks_(num_landmarks), landmarks_(landmarks) {
   RCObject::ref(steps);
   RCObject::ref(links);
   Orderings::register_use(&orderings);

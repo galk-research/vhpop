@@ -792,6 +792,14 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
   }
 }
 
+void PlanningGraph::add_achiever(const GroundAction& action) {
+  for (EffectList::const_iterator ei = action.effects().begin();
+       ei != action.effects().end(); ei++) {
+    const Atom& atom = dynamic_cast<const Atom&>((*ei)->literal());
+    achievers_[&atom].insert(std::make_pair(&action, *ei));
+  }
+}
+
 
 /* Deletes this planning graph. */
 PlanningGraph::~PlanningGraph() {

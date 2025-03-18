@@ -89,6 +89,8 @@ struct Parameters {
   bool keep_static_preconditions;
   /* Whether to use landmark graph */
   bool landmarks;
+  /* Whether to add effects to landmarks */
+  bool landmark_effects;
 
   /* Constructs default planning parameters. */
   Parameters();

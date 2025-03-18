@@ -46,6 +46,9 @@ class Action {
   // Adds an effect to this action.
   void add_effect(const Effect& effect);
 
+  // Adds an effect to this action. If the formula is a disjunction it does nothing
+  void add_effect(const Formula& effect);
+
   // Sets the minimum duration for this action.
   void set_min_duration(const Expression& min_duration);
 
