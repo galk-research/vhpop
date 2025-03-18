@@ -247,8 +247,7 @@ private:
  */
 namespace std {
   template<>
-  struct less<const Literal*>
-    : public binary_function<const Literal*, const Literal*, bool> {
+  struct less<const Literal*> {
     /* Comparison function operator. */
     bool operator()(const Literal* l1, const Literal* l2) const {
       return l1->id() < l2->id();
@@ -309,8 +308,7 @@ protected:
 
 private:
   /* Less-than comparison function object for atoms. */
-  struct AtomLess
-    : public std::binary_function<const Atom*, const Atom*, bool> {
+  struct AtomLess {
     /* Comparison function. */
     bool operator()(const Atom* a1, const Atom* a2) const;
   };
@@ -396,8 +394,7 @@ protected:
 
 private:
   /* Less-than comparison function object for negated atoms. */
-  struct NegationLess
-    : public std::binary_function<const Negation*, const Negation*, bool> {
+  struct NegationLess {
     /* Comparison function. */
     bool operator()(const Negation* n1, const Negation* n2) const;
   };

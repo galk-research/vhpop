@@ -96,8 +96,7 @@ Link::~Link() {
  */
 namespace std {
   template<>
-  struct less<const Plan*>
-    : public binary_function<const Plan*, const Plan*, bool> {
+  struct less<const Plan*> {
     /* Comparison function operator. */
     bool operator()(const Plan* p1, const Plan* p2) const {
       return *p1 < *p2;

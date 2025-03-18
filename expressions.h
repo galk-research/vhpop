@@ -129,8 +129,7 @@ struct Fluent : public Expression {
 
 private:
   /* Less-than comparison function object for fluents. */
-  struct FluentLess
-    : public std::binary_function<const Fluent*, const Fluent*, bool> {
+  struct FluentLess {
     /* Comparison function. */
     bool operator()(const Fluent* f1, const Fluent* f2) const;
   };
@@ -163,8 +162,7 @@ private:
  */
 namespace std {
   template<>
-  struct less<const Fluent*>
-    : public binary_function<const Fluent*, const Fluent*, bool> {
+  struct less<const Fluent*> {
     /* Comparison function operator. */
     bool operator()(const Fluent* f1, const Fluent* f2) const {
       return f1->id() < f2->id();
