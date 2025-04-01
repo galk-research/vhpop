@@ -79,6 +79,7 @@ functions:
   ADDR_WORK uses the ADDR work heuristic.
   PL uses h(p) = |S(p)| - |Landmarks(p)| for plan p.
   PL+L uses h(p) = |S(p)| for plan p.
+  OL counts open conditions and landmarks that are not satisfied in the plan.
 
 
 Flaw Selection

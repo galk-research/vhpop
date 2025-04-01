@@ -256,7 +256,7 @@ private:
   /* Heuristics. */
   typedef enum { LIFO, FIFO, OC, UC, BUC, S_PLUS_OC, UCPOP,
                  ADD, ADD_COST, ADD_WORK, ADDR, ADDR_COST, ADDR_WORK,
-                 MAKESPAN, PL, PL_PLUS_L } HVal;
+                 MAKESPAN, PL, PL_PLUS_L, OL } HVal;
 
   /* The selected heuristics. */
   std::vector<HVal> h_;

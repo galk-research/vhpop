@@ -91,6 +91,8 @@ struct Parameters {
   bool landmarks;
   /* Whether to add effects to landmarks */
   bool landmark_effects;
+  /* Whether to use the landmarks heuristic */
+  bool landmarks_h;
 
   /* Constructs default planning parameters. */
   Parameters();

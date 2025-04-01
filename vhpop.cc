@@ -250,6 +250,9 @@ int main(int argc, char* argv[]) {
     case 'h':
       try {
         params.heuristic = optarg;
+        if (optarg == std::string("OL")) {
+          params.landmarks_h = true;
+        }
       } catch (const InvalidHeuristic& e) {
         std::cerr << PACKAGE ": " << e.what() << std::endl
                   << "Try `" PACKAGE " --help' for more information."

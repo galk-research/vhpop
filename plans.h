@@ -175,6 +175,12 @@ struct Plan {
   /* Returns the number of open conditions in this plan. */
   size_t num_open_conds() const { return num_open_conds_; }
 
+  /* Returns the landmark conditions of this plan. */
+  const Chain<const Formula*>* landmark_conds() const { return landmark_conds_; }
+
+  /* Returns the number of landmark conditions in this plan. */
+  size_t num_landmark_conds() const { return num_landmark_conds_; }
+
   /* Returns the mutex threats of this plan. */
   const Chain<MutexThreat>* mutex_threats() const { return mutex_threats_; }
 
@@ -192,6 +198,10 @@ struct Plan {
   /* Returns the depth of this plan. */
   size_t depth() const { return depth_; }
 #endif
+
+  /*  Removes a landmark condition when we remove an open condition that appears in a landmark.
+      The function removed nothing if the open condition is not in a landmark. */
+  void remove_landmark_cond(const OpenCondition& open_cond, const Chain<const Formula*>*& landmark_conds, size_t& num_landmark_conds) const;
 
   /* Counts the number of refinements for the given threat, and returns
      true iff the number of refinements does not exceed the given
@@ -249,12 +259,14 @@ private:
   const Chain<OpenCondition>* open_conds_;
   /* Number of open conditions. */
   const size_t num_open_conds_;
+  /* Chain of landmark conditions. */
+  const Chain<const Formula*>* landmark_conds_;
+  /* Number of landmark conditions. */
+  const size_t num_landmark_conds_;
   /* Chain of mutex threats. */
   const Chain<MutexThreat>* mutex_threats_;
   /* Number of landmark steps in plan. */
   size_t num_landmarks_;
-  /* Vector of landmark actions. */
-  std::vector<const Action*>* landmarks_;
   /* Rank of this plan. */
   mutable std::vector<float> rank_;
   /* Plan id (serial number). */
@@ -274,7 +286,8 @@ private:
        const Orderings& orderings, const Bindings& bindings,
        const Chain<Unsafe>* unsafes, size_t num_unsafes,
        const Chain<OpenCondition>* open_conds, size_t num_open_conds,
-       const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t num_landmarks = 0, std::vector<const Action*>* landmarks = nullptr);
+       const Chain<const Formula*>* landmark_conds, size_t num_landmark_conds,
+       const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t num_landmarks = 0);
 
   /* Returns the next flaw to work on. */
   const Flaw& get_flaw(const FlawSelectionOrder& flaw_order) const;
