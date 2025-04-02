@@ -166,6 +166,16 @@ strategy.  The first plan, if any, found is returned as the solution
 regardless of which flaw selection strategy was used.
 
 
+Landmarks
+---------
+
+VHPOP can use a landmark graph using the -m flag.
+If the heuristic is set to OL, the landmark graph is only used to
+compute the heuristic.  Otherwise, the landmarks are added as preconditions 
+of dummy actions to the initial plan in order to guide the planner.
+Using the -e flag adds the landmarks also as effects of the dummy actions. 
+
+
 Plans for Future Improvements
 -----------------------------
 
