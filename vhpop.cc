@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
     case 'h':
       try {
         params.heuristic = optarg;
-        if (optarg == std::string("OL")) {
+        if (strstr(optarg, "OL") != NULL) {
           params.landmarks_h = true;
         }
       } catch (const InvalidHeuristic& e) {

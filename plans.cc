@@ -1072,7 +1072,7 @@ void Plan::refinements(PlanList& plans,
 
 /*  Removes a landmark condition when we remove an open condition that appears in a landmark.
     The function removed nothing if the open condition is not in a landmark. */
-void Plan::remove_landmark_cond(const OpenCondition& open_cond, const Chain<const Formula*>*& landmark_conds, size_t& num_landmark_conds) const {
+const Chain<const Formula*>* Plan::remove_landmark_cond(const OpenCondition& open_cond, const Chain<const Formula*>*& landmark_conds, size_t& num_landmark_conds) const {
   for (const Chain<const Formula*>* fc = landmark_conds; fc != NULL; fc = fc->tail) {
     const Formula* f = fc->head;
     if (typeid(*f) == typeid(Disjunction)) {
@@ -1080,18 +1080,17 @@ void Plan::remove_landmark_cond(const OpenCondition& open_cond, const Chain<cons
       const FormulaList& gs = disj->disjuncts();
       for (FormulaList::const_iterator fi = gs.begin(); fi != gs.end(); fi++) {
         if (&open_cond.condition() == *fi) {
-          landmark_conds->remove(f);
           num_landmark_conds--;
-          return;
+          return landmark_conds->remove(f);
         }
       }
     } else if (&open_cond.condition() == f) {
-      landmark_conds->remove(f);
       num_landmark_conds--;
-      return;
+      return landmark_conds->remove(f);
     }
 
   }
+  return NULL;
 }
 
 
@@ -1723,16 +1722,15 @@ int Plan::handle_inequality(PlanList& plans, const Inequality& neq,
     const Bindings* bindings = bindings_->add(new_bindings, test_only);
     if (bindings != NULL) {
       if (!test_only) {
-        const Chain<const Formula*>* new_landmark_conds = landmark_conds();
         size_t new_num_landmark_cond = num_landmark_conds();
-        remove_landmark_cond(open_cond, new_landmark_conds,
-                             new_num_landmark_cond);
+        const Chain<const Formula*>* new_landmark_conds = landmark_conds();
         plans.push_back(new Plan(steps(), num_steps(), links(), num_links(),
                                  orderings(), *bindings,
                                  unsafes(), num_unsafes(),
                                  open_conds()->remove(open_cond),
                                  num_open_conds() - 1,
-                                 new_landmark_conds, new_num_landmark_cond,
+                                 remove_landmark_cond(open_cond, new_landmark_conds, new_num_landmark_cond),
+                                 new_num_landmark_cond,
                                  mutex_threats(), this, num_landmarks()));
       }
       count++;
@@ -1924,14 +1922,13 @@ int Plan::new_cw_link(PlanList& plans, const EffectList& effects,
                      orderings(), *bindings);
         const Chain<const Formula*>* new_landmark_conds = landmark_conds();
         size_t new_num_landmark_cond = num_landmark_conds();
-        remove_landmark_cond(open_cond, new_landmark_conds,
-                             new_num_landmark_cond);
         plans.push_back(new Plan(steps(), num_steps(),
                                  new_links, num_links() + 1,
                                  orderings(), *bindings,
                                  new_unsafes, new_num_unsafes,
                                  new_open_conds, new_num_open_conds,
-                                 new_landmark_conds, new_num_landmark_cond,
+                                 remove_landmark_cond(open_cond, new_landmark_conds, new_num_landmark_cond),
+                                 new_num_landmark_cond,
                                  mutex_threats(), this, num_landmarks()));
       }
       count++;
@@ -2114,13 +2111,12 @@ int Plan::make_link(PlanList& plans, const Step& step, const Effect& effect,
     /* Adds the new plan. */
     const Chain<const Formula*>* new_landmark_conds = landmark_conds();
     size_t new_num_landmark_cond = num_landmark_conds();
-    remove_landmark_cond(open_cond, new_landmark_conds,
-                         new_num_landmark_cond);
     plans.push_back(new Plan(new_steps, new_num_steps, new_links,
                              num_links() + 1, *new_orderings, *bindings,
                              new_unsafes, new_num_unsafes,
                              new_open_conds, new_num_open_conds,
-                             new_landmark_conds, new_num_landmark_cond,
+                             remove_landmark_cond(open_cond, new_landmark_conds, new_num_landmark_cond), 
+                             new_num_landmark_cond,
                              new_mutex_threats, this, num_landmarks()));
   }
   return 1;
