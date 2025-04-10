@@ -994,10 +994,10 @@ Heuristic& Heuristic::operator=(const std::string& name) {
       needs_pg_ = true;
     } else if (strcasecmp(n, "PL") == 0) {
       h_.push_back(PL);
-    } else if (strcasecmp(n, "PL+L") == 0) {
-      h_.push_back(PL_PLUS_L);
     } else if (strcasecmp(n, "OL") == 0) {
       h_.push_back(OL);
+    } else if (strcasecmp(n, "LM") == 0) {
+      h_.push_back(LM);
     } else {
       throw InvalidHeuristic(name);
     }
@@ -1036,13 +1036,14 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
     HVal h = *hi;
     switch (h) {
     case PL:
-      rank.push_back(plan.num_steps() - plan.num_landmarks());
-      break;
-    case PL_PLUS_L:
       rank.push_back(plan.num_steps());
       break;
     case OL:
-      rank.push_back(plan.num_open_conds() + weight*plan.num_landmark_conds());
+      rank.push_back(plan.num_steps() + plan.num_open_conds() +
+                     plan.num_landmark_conds());
+      break;
+    case LM:
+      rank.push_back(plan.num_steps() + plan.num_landmark_conds());
       break;
     case LIFO:
       rank.push_back(-1.0*plan.serial_no());

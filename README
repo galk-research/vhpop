@@ -77,10 +77,10 @@ functions:
   ADDR is like ADD, but tries to take reuse into account.
   ADDR_COST uses the ADDR cost heuristic.
   ADDR_WORK uses the ADDR work heuristic.
-  PL uses h(p) = |S(p)| - |Landmarks(p)| for plan p.
-  PL+L uses h(p) = |S(p)| for plan p.
-  OL counts open conditions and landmarks that are not satisfied in the plan.
-
+  PL uses h(p) = |S(p)| for plan p.
+  OL uses h(p) = |S(p)| + |OC(p)| + |Landmarks(p)| for plan p.
+  LM uses h(p) = |S(p)| + |Landmarks(p)| for plan p.
+  
 
 Flaw Selection
 --------------
@@ -99,6 +99,7 @@ flaws.
 
 The different flaw types are "o" (open condition), "t" (static open
 condition), "l" (local open condition), "u" (unsafe open condition),
+"m" (landmark open condition), "x" (non-landmark open condition),
 "n" (non-separable threat), and "s" (separable threat).  The different
 ordering criteria are "LIFO", "FIFO", "R" (random), "LR" (least
 refinements first), "MR" (opposite of LR), "New" (open conditions that
@@ -170,7 +171,7 @@ Landmarks
 ---------
 
 VHPOP can use a landmark graph using the -m flag.
-If the heuristic is set to OL, the landmark graph is only used to
+If the heuristic is set to OL or LM, the landmark graph is only used to
 compute the heuristic.  Otherwise, the landmarks are added as preconditions 
 of dummy actions to the initial plan in order to guide the planner.
 Using the -e flag adds the landmarks also as effects of the dummy actions. 
