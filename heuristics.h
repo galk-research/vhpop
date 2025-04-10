@@ -317,6 +317,10 @@ struct SelectionCriterion {
   bool static_open_cond;
   /* Whether this criterion applies to unsafe open conditions. */
   bool unsafe_open_cond;
+  /* Whether this criterion applies to landmark open conditions. */
+  bool landmark_open_cond;
+  /* Whether this criterion applies to non-landmark open conditions. */
+  bool not_landmark_open_cond;
   /* The maximum number of refinements allowed for a flaw that this
      criterion applies to. */
   int max_refinements;

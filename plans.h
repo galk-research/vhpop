@@ -200,8 +200,10 @@ struct Plan {
 #endif
 
   /*  Removes a landmark condition when we remove an open condition that appears in a landmark.
-      The function removed nothing if the open condition is not in a landmark. */
-  const Chain<const Formula*>* remove_landmark_cond(const OpenCondition& open_cond, const Chain<const Formula*>*& landmark_conds, size_t& num_landmark_conds) const;
+      The function removes nothing if the open condition is not in a landmark. */
+  const Chain<const Formula*>* remove_landmark_cond(const OpenCondition& open_cond, size_t& num_landmark_conds) const;
+
+
 
   /* Counts the number of refinements for the given threat, and returns
      true iff the number of refinements does not exceed the given

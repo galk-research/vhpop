@@ -1217,6 +1217,20 @@ std::ostream& operator<<(std::ostream& os, const SelectionCriterion& c) {
     os << 'l';
     first = false;
   }
+  if (c.landmark_open_cond) {
+    if (!first) {
+      os << ',';
+    }
+    os << 'm';
+    first = false;
+  }
+  if (c.not_landmark_open_cond) {
+    if (!first) {
+      os << ',';
+    }
+    os << 'x';
+    first = false;
+  }
   if (c.static_open_cond) {
     if (!first) {
       os << ',';
@@ -1419,9 +1433,11 @@ FlawSelectionOrder& FlawSelectionOrder::operator=(const std::string& name) {
     criterion.local_open_cond = false;
     criterion.static_open_cond = false;
     criterion.unsafe_open_cond = false;
+    criterion.landmark_open_cond = false;
+    criterion.not_landmark_open_cond = false;
     do {
       switch (name[pos]) {
-      case 'n':
+        case 'n':
         pos++;
         if (name[pos] == ',' || name[pos] == '}') {
           criterion.non_separable = true;
@@ -1433,7 +1449,7 @@ FlawSelectionOrder& FlawSelectionOrder::operator=(const std::string& name) {
           throw InvalidFlawSelectionOrder(name);
         }
         break;
-      case 's':
+        case 's':
         pos++;
         if (name[pos] == ',' || name[pos] == '}') {
           criterion.separable = true;
@@ -1452,6 +1468,8 @@ FlawSelectionOrder& FlawSelectionOrder::operator=(const std::string& name) {
           criterion.local_open_cond = false;
           criterion.static_open_cond = false;
           criterion.unsafe_open_cond = false;
+          criterion.landmark_open_cond = false;
+          criterion.not_landmark_open_cond = false;
           if (first_open_cond_criterion_ > last_open_cond_criterion_) {
             first_open_cond_criterion_ = selection_criteria_.size();
           }
@@ -1493,6 +1511,34 @@ FlawSelectionOrder& FlawSelectionOrder::operator=(const std::string& name) {
         if (name[pos] == ',' || name[pos] == '}') {
           if (!criterion.open_cond) {
             criterion.unsafe_open_cond = true;
+            if (first_open_cond_criterion_ > last_open_cond_criterion_) {
+              first_open_cond_criterion_ = selection_criteria_.size();
+            }
+            last_open_cond_criterion_ = selection_criteria_.size();
+          }
+        } else {
+          throw InvalidFlawSelectionOrder(name);
+        }
+        break;
+      case 'm':
+        pos++;
+        if (name[pos] == ',' || name[pos] == '}') {
+          if (!criterion.open_cond) {
+            criterion.landmark_open_cond = true;
+            if (first_open_cond_criterion_ > last_open_cond_criterion_) {
+              first_open_cond_criterion_ = selection_criteria_.size();
+            }
+            last_open_cond_criterion_ = selection_criteria_.size();
+          }
+        } else {
+          throw InvalidFlawSelectionOrder(name);
+        }
+        break;
+      case 'x':
+        pos++;
+        if (name[pos] == ',' || name[pos] == '}') {
+          if (!criterion.open_cond) {
+            criterion.not_landmark_open_cond = true;
             if (first_open_cond_criterion_ > last_open_cond_criterion_) {
               first_open_cond_criterion_ = selection_criteria_.size();
             }
@@ -1772,7 +1818,7 @@ int FlawSelectionOrder::select_unsafe(FlawSelection& selection,
 }
 
 
-/* Seaches open conditions for a flaw to select. */
+/* Searches open conditions for a flaw to select. */
 int FlawSelectionOrder::select_open_cond(FlawSelection& selection,
                                          const Plan& plan,
                                          const Problem& problem,
@@ -1796,6 +1842,7 @@ int FlawSelectionOrder::select_open_cond(FlawSelection& selection,
       local_id = open_cond.step_id();
     }
     bool local = (open_cond.step_id() == local_id);
+    bool is_landmark = open_cond.is_landmark();
     int is_static = -1;
     int is_unsafe = -1;
     int refinements = -1;
@@ -1823,7 +1870,9 @@ int FlawSelectionOrder::select_open_cond(FlawSelection& selection,
       if (criterion.open_cond
           || (criterion.local_open_cond && local)
           || (criterion.static_open_cond && is_static > 0)
-          || (criterion.unsafe_open_cond && is_unsafe > 0)) {
+          || (criterion.unsafe_open_cond && is_unsafe > 0)
+          || (criterion.landmark_open_cond && is_landmark)
+          || (criterion.not_landmark_open_cond && !is_landmark)) {
         /* Right type of open condition, so now check if the
            refinement constraint is satisfied. */
         if (criterion.max_refinements == std::numeric_limits<int>::max()

@@ -52,10 +52,10 @@ struct Flaw {
  */
 struct OpenCondition : public Flaw {
   /* Constructs an open condition. */
-  OpenCondition(size_t step_id, const Formula& condition);
+  OpenCondition(size_t step_id, const Formula& condition, bool is_landmark);
 
   /* Constructs an open condition. */
-  OpenCondition(size_t step_id, const Literal& condition, FormulaTime when);
+  OpenCondition(size_t step_id, const Literal& condition, FormulaTime when, bool is_landmark);
 
   /* Constructs an open condition. */
   OpenCondition(const OpenCondition& oc);
@@ -79,6 +79,9 @@ struct OpenCondition : public Flaw {
   /* Returns the time stamp associated with a literal open condition. */
   FormulaTime when() const { return when_; }
 
+  /* Returns whether the condition appears in a landmark. */
+  bool is_landmark() const { return is_landmark_; }
+
   /* Returns a inequality, or NULL if this is not an inequality open
      condition. */
   const Inequality* inequality() const;
@@ -97,6 +100,8 @@ private:
   const Formula* condition_;
   /* Time stamp associated with a literal open condition. */
   FormulaTime when_;
+  /* Whether the condition appears in a landmark. */
+  bool is_landmark_;
 };
 
 /* Equality operator for open conditions. */
