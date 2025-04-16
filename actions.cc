@@ -78,13 +78,10 @@ void Action::add_effect(const Formula& effect) {
             fi != gs.end(); fi++) {
         effects.push_back(*fi);
       }
-    } else if (typeid(*effect) == typeid(Conjunction)) {
+    } else if (typeid(*effect) == typeid(Disjunction)) {
       continue;
-    } else if (typeid(*effect) == typeid(Atom)) {
-      const Literal* l = dynamic_cast<const Literal*>(effect);
-      const Effect* new_effect = new Effect(*l, Effect::AT_END);
-      add_effect(*new_effect);
-    } else if (typeid(*effect) == typeid(Atom)) {
+    } else if (typeid(*effect) == typeid(Atom) ||
+               typeid(*effect) == typeid(Negation)) {
       const Literal* l = dynamic_cast<const Literal*>(effect);
       const Effect* new_effect = new Effect(*l, Effect::AT_END);
       add_effect(*new_effect);

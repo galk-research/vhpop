@@ -23,6 +23,8 @@
 #define HEURISTICS_H
 
 #include <stdexcept>
+#include <unordered_set>
+#include <unordered_map>
 
 #include "domains.h"
 #include "formulas.h"
@@ -65,17 +67,20 @@ struct HeuristicValue {
 
   /* Constructs a zero heuristic value. */
   HeuristicValue()
-    : add_cost_(0.0f), add_work_(0), makespan_(0.0f) {}
+    : add_cost_(0.0f), add_work_(0), max_cost_(0.0f), makespan_(0.0f) {}
 
   /* Constructs a heuristic value. */
-  HeuristicValue(float add_cost, int add_work, float makespan)
-    : add_cost_(add_cost), add_work_(add_work), makespan_(makespan) {}
+  HeuristicValue(float add_cost, int add_work, float max_cost, float makespan)
+    : add_cost_(add_cost), add_work_(add_work), max_cost_(max_cost), makespan_(makespan) {}
 
   /* Returns the cost according to the additive heurisitc. */
   float add_cost() const { return add_cost_; }
 
   /* Returns the work according to the additive heuristic. */
   int add_work() const { return add_work_; }
+
+  /* Returns the cost according to the maximum heurisitc. */
+  float max_cost() const { return max_cost_; }
 
   /* Returns the value according to the makespan heuristic. */
   float makespan() const { return makespan_; }
@@ -103,6 +108,8 @@ private:
   float add_cost_;
   /* Work according to additive heuristic. */
   int add_work_;
+  /* Cost according to maximum heuristic. */
+  float max_cost_;
   /* Value according to the makespan heursitic. */
   float makespan_;
 };
@@ -151,9 +158,11 @@ struct PlanningGraph {
   /* Returns the problem associated with this planning graph. */
   const Problem& problem() const { return *problem_; }
 
+  float ff_value(const Plan& plan, bool reuse = false) const;
+
   /* Returns the heurisitc value of an atom. */
   HeuristicValue heuristic_value(const Atom& atom, size_t step_id,
-                                 const Bindings* bindings = NULL) const;
+                                     const Bindings* bindings = NULL) const;
 
   /* Returns the heuristic value of a negated atom. */
   HeuristicValue heuristic_value(const Negation& negation, size_t step_id,
@@ -184,6 +193,14 @@ private:
   struct ActionDomainMap : public std::map<std::string, ActionDomain*> {
   };
 
+  struct ActionValueMap
+    : public std::map<const Action*, float> {
+  };
+
+  struct LiteralBestAchieverMap
+    : public std::map<const Literal*, const Action*> {
+  };
+
   /* Problem associated with this planning graph. */
   const Problem* problem_;
   /* Atom values. */
@@ -198,6 +215,10 @@ private:
   PredicateAtomsMap predicate_negations_;
   /* Maps action names to possible parameter lists. */
   ActionDomainMap action_domains_;
+  /* Maps actions to their value for the ff heuristic. */
+  ActionValueMap action_values_;
+  /* Maps literals to their least value achiever. */
+  LiteralBestAchieverMap literal_best_achievers_;
 
   /* Finds an element in a LiteralActionsMap. */
   bool find(const LiteralAchieverMap& m, const Literal& l,
@@ -256,7 +277,7 @@ private:
   /* Heuristics. */
   typedef enum { LIFO, FIFO, OC, UC, BUC, S_PLUS_OC, UCPOP,
                  ADD, ADD_COST, ADD_WORK, ADDR, ADDR_COST, ADDR_WORK,
-                 MAKESPAN, PL, OL, LM } HVal;
+                 MAKESPAN, PL, OL, LM, MAX, MAX_COST, MAX_WORK, FF, FF_COST, FFR, FFR_COST } HVal;
 
   /* The selected heuristics. */
   std::vector<HVal> h_;

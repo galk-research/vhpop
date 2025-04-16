@@ -167,15 +167,16 @@ struct GroundActionSet
 
 /* A zero heuristic value. */
 const HeuristicValue HeuristicValue::ZERO =
-HeuristicValue(0.0f, 0, Orderings::threshold);
+HeuristicValue(0.0f, 0, 0.0f, Orderings::threshold);
 /* A zero cost, unit work, heuristic value. */
 const HeuristicValue HeuristicValue::ZERO_COST_UNIT_WORK =
-HeuristicValue(0.0f, 1, Orderings::threshold);
+HeuristicValue(0.0f, 1, 0.0f, Orderings::threshold);
 /* An infinite heuristic value. */
 const HeuristicValue
 HeuristicValue::INFINITE = HeuristicValue(
     std::numeric_limits<float>::infinity(),
     std::numeric_limits<int>::max(),
+    std::numeric_limits<float>::infinity(),
     std::numeric_limits<float>::infinity());
 
 
@@ -195,6 +196,7 @@ bool HeuristicValue::infinite() const {
 HeuristicValue& HeuristicValue::operator+=(const HeuristicValue& v) {
   add_cost_ += v.add_cost();
   add_work_ = sum(add_work(), v.add_work());
+  max_cost_ = std::max(v.max_cost(), max_cost_);
   if (makespan() < v.makespan()) {
     makespan_ = v.makespan();
   }
@@ -205,6 +207,7 @@ HeuristicValue& HeuristicValue::operator+=(const HeuristicValue& v) {
 /* Increases the cost of this heuristic value. */
 void HeuristicValue::increase_cost(float x) {
   add_cost_ += x;
+  max_cost_ += x;
 }
 
 
@@ -229,8 +232,8 @@ bool operator==(const HeuristicValue& v1, const HeuristicValue& v2) {
 
 /* Inequality operator for heuristic values. */
 bool operator!=(const HeuristicValue& v1, const HeuristicValue& v2) {
-  return (v1.add_cost() != v2.add_cost() || v1.add_work() != v2.add_work()
-          || v1.makespan() != v2.makespan());
+  return (v1.add_cost() != v2.add_cost() || v1.add_work() != v2.add_work() ||
+          v1.max_cost() != v2.max_cost() || v1.makespan() != v2.makespan());
 }
 
 #if 0
@@ -275,7 +278,7 @@ HeuristicValue min(const HeuristicValue& v1, const HeuristicValue& v2) {
     add_cost = v2.add_cost();
     add_work = v2.add_work();
   }
-  return HeuristicValue(add_cost, add_work,
+  return HeuristicValue(add_cost, add_work, std::min(v1.max_cost(), v2.max_cost()),
                         std::min(v1.makespan(), v2.makespan()));
 }
 
@@ -283,7 +286,8 @@ HeuristicValue min(const HeuristicValue& v1, const HeuristicValue& v2) {
 /* Output operator for heuristic values. */
 std::ostream& operator<<(std::ostream& os, const HeuristicValue& v) {
   os << "ADD<" << v.add_cost() << ',' << v.add_work() << '>'
-     << " MS<" << v.makespan() << '>';
+      << " MAX<" << v.max_cost() << '>'
+      << " MS<" << v.makespan() << '>';
   return os;
 }
 
@@ -400,6 +404,67 @@ void TimedLiteral::heuristic_value(HeuristicValue& h, HeuristicValue& hs,
   }
 }
 
+/* Returns the value of an action with this formula as a precondition */
+float Constant::precond_value(const PlanningGraph& pg) const {
+  return 0.0f;
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float Atom::precond_value(const PlanningGraph& pg) const {
+  return pg.heuristic_value(*this, 0).max_cost();
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float Negation::precond_value(const PlanningGraph& pg) const {
+  return pg.heuristic_value(*this, 0).max_cost();
+}
+
+/* Returns the heuristic vaue of this formula. */
+float Equality::precond_value(const PlanningGraph& pg) const {
+  return 0.0f;
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float Inequality::precond_value(const PlanningGraph& pg) const {
+  return 0.0f;
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float Conjunction::precond_value(const PlanningGraph& pg) const {
+  float v = 0.0f;
+  for (FormulaList::const_iterator fi = conjuncts().begin();
+       fi != conjuncts().end() && v <= std::numeric_limits<float>::infinity(); fi++) {
+    v += (*fi)->precond_value(pg);
+  }
+  return v;
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float Disjunction::precond_value(const PlanningGraph& pg) const {
+  float v = 0.0f;
+  for (FormulaList::const_iterator fi = disjuncts().begin();
+       fi != disjuncts().end() && v <= std::numeric_limits<float>::infinity();
+       fi++) {
+    v = min(v, (*fi)->precond_value(pg));
+  }
+  return v;
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float Exists::precond_value(const PlanningGraph& pg) const {
+  return body().precond_value(pg);
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float Forall::precond_value(const PlanningGraph& pg) const {
+  const Formula& f = universal_base(std::map<Variable, Term>(), pg.problem());
+  return f.precond_value(pg);
+}
+
+/* Returns the value of an action with this formula as a precondition */
+float TimedLiteral::precond_value(const PlanningGraph& pg) const {
+  return literal().precond_value(pg);
+}
 
 /* ====================================================================== */
 /* PlanningGraph */
@@ -472,9 +537,11 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
    * Add initial conditions at level 0.
    */
   const GroundAction& ia = problem.init_action();
+  unordered_set<const Atom*> init_atoms;
   for (EffectList::const_iterator ei = ia.effects().begin();
        ei != ia.effects().end(); ei++) {
     const Atom& atom = dynamic_cast<const Atom&>((*ei)->literal());
+    init_atoms.insert(&atom);
     achievers_[&atom].insert(std::make_pair(&ia, *ei));
     if (PredicateTable::static_predicate(atom.predicate())) {
       atom_values_.insert(std::make_pair(&atom, HeuristicValue::ZERO));
@@ -501,14 +568,14 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
       if (atom != NULL) {
         if (atom_values_.find(atom) == atom_values_.end()) {
           atom_values_.insert(std::make_pair(atom,
-                                             HeuristicValue(d, 1, time)));
+                                             HeuristicValue(d, 1, d, time)));
         }
       } else {
         const Negation& negation = dynamic_cast<const Negation&>(literal);
         if (negation_values_.find(&negation.atom()) == negation_values_.end()
             && heuristic_value(negation.atom(), 0).zero()) {
           negation_values_.insert(std::make_pair(&negation.atom(),
-                                                 HeuristicValue(d, 1, time)));
+                                                 HeuristicValue(d, 1, d, time)));
         }
       }
     }
@@ -700,6 +767,48 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
   } while (changed);
 
   /*
+    Map actions to their values.
+  */
+  for (std::vector<const GroundAction*>::const_iterator ai = actions.begin();
+       ai != actions.end(); ai++) {
+    const GroundAction& action = **ai;
+    const Formula& precond = action.condition();
+    float v = precond.precond_value(*this);
+    action_values_.insert(std::make_pair(&action, v));
+  }
+
+  /*
+    Map literals to their best achievers.
+  */
+  for (LiteralAchieverMap::const_iterator ai = achievers_.begin();
+       ai != achievers_.end(); ai++) {
+    const Literal& l = *(*ai).first;
+
+    if (typeid(l) == typeid(Negation)) {
+      const Negation& negation = dynamic_cast<const Negation&>(l);
+      const Atom& atom = negation.atom();
+      unordered_set<const Atom*>::const_iterator vi = init_atoms.find(&atom);
+      if (vi == init_atoms.end()) {
+        literal_best_achievers_.insert(std::make_pair(&l, &ia));
+        continue;
+      }
+    }
+
+    float v = std::numeric_limits<float>::infinity();
+    const Action* best_action = nullptr;
+    for (ActionEffectMap::const_iterator ei = (*ai).second.begin();
+         ei != (*ai).second.end(); ei++) {
+      const Action& action = *(*ei).first;
+      float new_v = action_values_[&action];
+      if (new_v < v) {
+        v = new_v;
+        best_action = &action;
+      }
+    }
+    literal_best_achievers_.insert(std::make_pair(&l, best_action));
+  }
+
+  /*
    * Map predicates to achievable ground atoms.
    */
   for (AtomValueMap::const_iterator vi = atom_values_.begin();
@@ -771,6 +880,7 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
          ai != good_actions.end(); ai++) {
       std::cerr << "  ";
       (*ai)->print(std::cerr, 0, Bindings::EMPTY);
+      std::cerr << "    with value " << action_values_[*ai];
       std::cerr << std::endl;
     }
     /*
@@ -781,13 +891,19 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
          vi != atom_values_.end(); vi++) {
       std::cerr << "  ";
       (*vi).first->print(std::cerr, 0, Bindings::EMPTY);
-      std::cerr << " -- " << (*vi).second << std::endl;
+      std::cerr << " -- " << (*vi).second;
+      std::cerr << " -- ";
+      literal_best_achievers_[vi->first]->print(cerr, 0, Bindings::EMPTY);
+      std::cerr << std::endl;
     }
     for (AtomValueMap::const_iterator vi = negation_values_.begin();
          vi != negation_values_.end(); vi++) {
       std::cerr << "  (not ";
       (*vi).first->print(std::cerr, 0, Bindings::EMPTY);
-      std::cerr << ") -- " << (*vi).second << std::endl;
+      std::cerr << ") -- " << (*vi).second;
+      std::cerr << " -- ";
+      literal_best_achievers_[&Negation::make(*vi->first)]->print(cerr, 0, Bindings::EMPTY);
+      std::cerr << std::endl; 
     }
   }
 }
@@ -823,6 +939,85 @@ PlanningGraph::~PlanningGraph() {
   }
 }
 
+float PlanningGraph::ff_value(const Plan &plan, bool reuse) const {
+  std::unordered_set<const GroundAction*> usedActions;
+  std::unordered_map<const GroundAction*, std::vector<int>> actionToStepIds;
+
+  if (reuse) {
+    for (const Chain<Step>* step = plan.steps(); step != nullptr;
+         step = step->tail) {
+      const Step& s = step->head;
+      const GroundAction* action =
+          dynamic_cast<const GroundAction*>(&s.action());
+      if (action != nullptr) {
+        actionToStepIds[action].push_back(s.id());
+      }
+    }
+  }
+
+  for (const Chain<OpenCondition>* occ = plan.open_conds(); occ != NULL;
+       occ = occ->tail) {
+    const OpenCondition& oc = occ->head;
+    const Formula& formula = oc.condition();
+    vector<const Formula*> formulas (1, &formula);
+    while (!formulas.empty()) {
+      const Formula* f = formulas.back();
+      formulas.pop_back();
+      if (typeid(*f) == typeid(Conjunction)) {
+        const Conjunction& c = dynamic_cast<const Conjunction&>(*f);
+        for (FormulaList::const_iterator fi = c.conjuncts().begin();
+             fi != c.conjuncts().end(); fi++) {
+          formulas.push_back(*fi);
+        }
+      } else if (typeid(*f) == typeid(Disjunction)) {
+        const Disjunction& d = dynamic_cast<const Disjunction&>(*f);
+        const Formula* cheapest_disjunct = nullptr;
+        float cheapest_cost = std::numeric_limits<float>::infinity();
+        for (FormulaList::const_iterator fi = d.disjuncts().begin();
+             fi != d.disjuncts().end(); fi++) {
+              HeuristicValue h;
+              HeuristicValue hs;
+          float cost = (*fi)->precond_value(*this);
+          if (cost < cheapest_cost) {
+            cheapest_cost = cost;
+            cheapest_disjunct = *fi;
+          }
+        }
+        formulas.push_back(cheapest_disjunct);
+      } else if (typeid(*f) == typeid(Atom) || typeid(*f) == typeid(Negation)) {
+        const Literal& l = dynamic_cast<const Literal&>(*f);
+        const GroundAction* best_action =
+          dynamic_cast<const GroundAction*>(literal_best_achievers_.find(&l)->second);
+        std::unordered_set<const GroundAction*>::const_iterator ai =
+          usedActions.find(best_action);
+        if (ai != usedActions.end()) {
+          continue;
+        }
+        auto it = actionToStepIds.find(best_action);
+        if (it == actionToStepIds.end()) {
+          usedActions.insert(best_action);
+          formulas.push_back(&best_action->condition());
+          continue;
+        }
+        bool insert = true;
+        vector<int> step_ids = it->second;
+        for (unsigned int i = 0; i < step_ids.size(); i++) {
+          if (plan.orderings().possibly_before(step_ids[i], StepTime::AT_START,
+            oc.step_id(),
+            StepTime::AT_START)) {
+              insert = false;
+              break;
+          }
+        }
+        if (insert) {
+          usedActions.insert(best_action);
+          formulas.push_back(&best_action->condition());
+        }
+      }
+    }
+  }
+  return usedActions.size() - (reuse ? 0.0f : 1.0f);
+}
 
 /* Returns the heuristic value of a ground atom. */
 HeuristicValue PlanningGraph::heuristic_value(const Atom& atom, size_t step_id,
@@ -980,6 +1175,27 @@ Heuristic& Heuristic::operator=(const std::string& name) {
     } else if (strcasecmp(n, "ADD_WORK") == 0) {
       h_.push_back(ADD_WORK);
       needs_pg_ = true;
+    } else if (strcasecmp(n, "MAX") == 0) {
+      h_.push_back(MAX);
+      needs_pg_ = true;
+    } else if (strcasecmp(n, "MAX_COST") == 0) {
+      h_.push_back(MAX_COST);
+      needs_pg_ = true;
+    } else if (strcasecmp(n, "MAX_WORK") == 0) {
+      h_.push_back(MAX_WORK);
+      needs_pg_ = true;
+    } else if (strcasecmp(n, "FF") == 0) {
+      h_.push_back(FF);
+      needs_pg_ = true;
+    } else if (strcasecmp(n, "FF_COST") == 0) {
+      h_.push_back(FF_COST);
+      needs_pg_ = true;
+    } else if (strcasecmp(n, "FFR") == 0) {
+      h_.push_back(FFR);
+      needs_pg_ = true;
+    } else if (strcasecmp(n, "FFR_COST") == 0) {
+      h_.push_back(FFR_COST);
+      needs_pg_ = true;
     } else if (strcasecmp(n, "ADDR") == 0) {
       h_.push_back(ADDR);
       needs_pg_ = true;
@@ -1024,6 +1240,13 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
                           float weight, const Domain& domain,
                           const PlanningGraph* planning_graph,
                           int search_algorithm) const {
+  bool max_done = false;
+  float max_cost = 0.0f;
+  // int max_work = 0;
+  bool ff_done = false;
+  float ff_cost = 0.0f;
+  bool ffr_done = false;
+  float ffr_cost = 0.0f;
   bool add_done = false;
   float add_cost = 0.0f;
   int add_work = 0;
@@ -1132,6 +1355,81 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
       } else {
         if (addr_work < std::numeric_limits<int>::max()) {
           rank.push_back(addr_work);
+        } else {
+          rank.push_back(std::numeric_limits<float>::infinity());
+        }
+      }
+      break;
+    case MAX:
+    case MAX_COST:
+    case MAX_WORK:
+      if (!max_done) {
+        max_done = true;
+        for (const Chain<OpenCondition>* occ = plan.open_conds(); occ != NULL;
+             occ = occ->tail) {
+          const OpenCondition& open_cond = occ->head;
+          HeuristicValue v, vs;
+          formula_value(v, vs, open_cond.condition(), open_cond.step_id(), plan,
+                        *planning_graph);
+          max_cost = std::max(v.max_cost(), max_cost);
+          // max_work = sum(max_work, v.add_work());
+        }
+      }
+      if (h == MAX) {
+        if (max_cost < std::numeric_limits<int>::max()) {
+          rank.push_back(plan.num_steps() * (!is_gbfs) + weight * max_cost);
+        } else {
+          rank.push_back(std::numeric_limits<float>::infinity());
+        }
+      } else if (h == MAX_COST) {
+        if (max_cost < std::numeric_limits<int>::max()) {
+          rank.push_back(max_cost);
+        } else {
+          rank.push_back(std::numeric_limits<float>::infinity());
+        }
+        // } else {
+        //   if (max_work < std::numeric_limits<int>::max()) {
+        //     rank.push_back(max_work);
+        //   } else {
+        //     rank.push_back(std::numeric_limits<float>::infinity());
+        //   }
+      }
+      break;
+    case FF:
+    case FF_COST:
+      if (!ff_done) {
+        ff_done = true;
+        ff_cost = planning_graph->ff_value(plan);
+      }
+      if (h == FF) {
+        if (ff_cost < std::numeric_limits<int>::max()) {
+          rank.push_back(plan.num_steps() * (!is_gbfs) + weight * ff_cost);
+        } else {
+          rank.push_back(std::numeric_limits<float>::infinity());
+        }
+      } else if (h == FF_COST) {
+        if (ff_cost < std::numeric_limits<int>::max()) {
+          rank.push_back(ff_cost);
+        } else {
+          rank.push_back(std::numeric_limits<float>::infinity());
+        }
+      }
+      break;
+    case FFR:
+    case FFR_COST:
+      if (!ffr_done) {
+        ffr_done = true;
+        ffr_cost = planning_graph->ff_value(plan, true);
+      }
+      if (h == FFR) {
+        if (ffr_cost < std::numeric_limits<int>::max()) {
+          rank.push_back(plan.num_steps() * (!is_gbfs) + weight * ffr_cost);
+        } else {
+          rank.push_back(std::numeric_limits<float>::infinity());
+        }
+      } else if (h == FFR_COST) {
+        if (ffr_cost < std::numeric_limits<int>::max()) {
+          rank.push_back(ffr_cost);
         } else {
           rank.push_back(std::numeric_limits<float>::infinity());
         }

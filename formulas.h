@@ -106,6 +106,9 @@ struct Formula {
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b = NULL) const = 0;
 
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const = 0;
+
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
                      size_t step_id, const Bindings& bindings) const = 0;
@@ -172,6 +175,9 @@ struct Constant : public Formula {
   virtual void heuristic_value(HeuristicValue& h, HeuristicValue& hs,
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
+
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
 
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
@@ -298,6 +304,9 @@ struct Atom : public Literal {
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
 
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
+
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
                      size_t step_id, const Bindings& bindings) const;
@@ -383,6 +392,9 @@ struct Negation : public Literal {
   virtual void heuristic_value(HeuristicValue& h, HeuristicValue& hs,
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
+
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
 
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
@@ -498,6 +510,9 @@ struct Equality : public BindingLiteral {
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
 
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
+
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
                      size_t step_id, const Bindings& bindings) const;
@@ -543,6 +558,9 @@ struct Inequality : public BindingLiteral {
   virtual void heuristic_value(HeuristicValue& h, HeuristicValue& hs,
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
+
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
 
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
@@ -601,6 +619,9 @@ struct Conjunction : public Formula {
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
 
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
+
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
                      size_t step_id, const Bindings& bindings) const;
@@ -655,6 +676,9 @@ struct Disjunction : public Formula {
   virtual void heuristic_value(HeuristicValue& h, HeuristicValue& hs,
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
+
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
 
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
@@ -736,6 +760,9 @@ struct Exists : public Quantification {
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
 
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
+
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
                      size_t step_id, const Bindings& bindings) const;
@@ -772,6 +799,9 @@ struct Forall : public Quantification {
   virtual void heuristic_value(HeuristicValue& h, HeuristicValue& hs,
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
+
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
 
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,
@@ -836,6 +866,9 @@ struct TimedLiteral : public Formula {
   virtual void heuristic_value(HeuristicValue& h, HeuristicValue& hs,
                                const PlanningGraph& pg, size_t step_id,
                                const Bindings* b) const;
+
+  /* Returns the value of an action with this formula as a precondition */
+  virtual float precond_value(const PlanningGraph& pg) const;
 
   /* Prints this formula on the given stream with the given bindings. */
   virtual void print(std::ostream& os,

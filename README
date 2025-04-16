@@ -80,7 +80,12 @@ functions:
   PL uses h(p) = |S(p)| for plan p.
   OL uses h(p) = |S(p)| + |OC(p)| + |Landmarks(p)| for plan p.
   LM uses h(p) = |S(p)| + |Landmarks(p)| for plan p.
-  
+  MAX_COST uses the maximum cost heuristic.
+  MAX uses h(p) = |S(p)| + w*MAX_COST for plan p.
+  FF_COST uses the FF cost heuristic.
+  FF uses h(p) = |S(p)| + w*FF_COST for plan p.
+  FFR_COST is like FF_COST, but tries to take reuse into account.
+  FFR uses h(p) = |S(p)| + w*FFR_COST for plan p.
 
 Flaw Selection
 --------------
