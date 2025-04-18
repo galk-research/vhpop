@@ -470,8 +470,9 @@ float TimedLiteral::precond_value(const PlanningGraph& pg) const {
 /* PlanningGraph */
 
 /* Constructs a planning graph. */
-PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
-  : problem_(&problem) {
+PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params,
+                             unordered_set<const Atom*>* init_atoms)
+    : problem_(&problem) {
   /*
    * Find all consistent action instantiations.
    */
@@ -537,11 +538,10 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
    * Add initial conditions at level 0.
    */
   const GroundAction& ia = problem.init_action();
-  unordered_set<const Atom*> init_atoms;
   for (EffectList::const_iterator ei = ia.effects().begin();
        ei != ia.effects().end(); ei++) {
     const Atom& atom = dynamic_cast<const Atom&>((*ei)->literal());
-    init_atoms.insert(&atom);
+    init_atoms->insert(&atom);
     achievers_[&atom].insert(std::make_pair(&ia, *ei));
     if (PredicateTable::static_predicate(atom.predicate())) {
       atom_values_.insert(std::make_pair(&atom, HeuristicValue::ZERO));
@@ -787,8 +787,8 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params)
     if (typeid(l) == typeid(Negation)) {
       const Negation& negation = dynamic_cast<const Negation&>(l);
       const Atom& atom = negation.atom();
-      unordered_set<const Atom*>::const_iterator vi = init_atoms.find(&atom);
-      if (vi == init_atoms.end()) {
+      unordered_set<const Atom*>::const_iterator vi = init_atoms->find(&atom);
+      if (vi == init_atoms->end()) {
         literal_best_achievers_.insert(std::make_pair(&l, &ia));
         continue;
       }

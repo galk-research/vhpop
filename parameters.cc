@@ -54,7 +54,9 @@ Parameters::Parameters()
       keep_static_preconditions(true),
       landmarks(false),
       landmark_effects(false),
-      landmarks_h(false) {
+      landmarks_h(false),
+      auto_connect_effects(false),
+      auto_connect_preconds(false) {
   flaw_orders.push_back(FlawSelectionOrder("UCPOP")),
   search_limits.push_back(std::numeric_limits<unsigned int>::max());
 }

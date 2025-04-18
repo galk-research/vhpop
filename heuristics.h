@@ -148,7 +148,8 @@ std::ostream& operator<<(std::ostream& os, const HeuristicValue& v);
  */
 struct PlanningGraph {
   /* Constructs a planning graph. */
-  PlanningGraph(const Problem& problem, const Parameters& params);
+  PlanningGraph(const Problem& problem, const Parameters& params,
+                std::unordered_set<const Atom*>* init_atoms);
 
   void add_achiever(const GroundAction& action);
 

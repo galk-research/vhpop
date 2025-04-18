@@ -93,6 +93,10 @@ struct Parameters {
   bool landmark_effects;
   /* Whether to use the landmarks heuristic */
   bool landmarks_h;
+  /* whether to connect an action to every possible open condition*/
+  bool auto_connect_effects;
+  /* whether to connect an action to every possible effect*/
+  bool auto_connect_preconds;
 
   /* Constructs default planning parameters. */
   Parameters();

@@ -361,22 +361,29 @@ private:
                   const OpenCondition& open_cond,
                   const ActionEffectMap& achievers) const;
 
+  /* Connect the new step to as many open conditions as possible */
+  Plan* connect_effects(Plan* plan, const Step& step) const;
+
+  /* Connect the new step's precondition to as many effects as possible */
+  Plan* connect_preconds(Plan* plan, const Step& step) const;
+
   /* Adds plans to the given plan list with a link from the given step
-     to the given open condition added. */
+      to the given open condition added. */
   int new_link(PlanList& plans, const Step& step, const Effect& effect,
-               const Literal& literal, const OpenCondition& open_cond,
-               bool test_only = false) const;
+                const Literal& literal, const OpenCondition& open_cond,
+                bool test_only = false, bool auto_connect_effects = false,
+                bool auto_connect_preconds = false) const;
 
   /* Adds plans to the given plan list with a link from the given step
      to the given open condition added using the closed world
      assumption. */
-  int new_cw_link(PlanList& plans, const EffectList& effects,
+  int new_cw_link(Plan** plan, const EffectList& effects,
                   const Negation& negation, const OpenCondition& open_cond,
                   bool test_only = false) const;
 
   /* Returns a plan with a link added from the given effect to the
      given open condition. */
-  int make_link(PlanList& plans, const Step& step, const Effect& effect,
+  int make_link(Plan** plan, const Step& step, const Effect& effect,
                 const Literal& literal, const OpenCondition& open_cond,
                 const BindingList& unifier, bool test_only = false) const;
 

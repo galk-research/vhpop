@@ -75,9 +75,11 @@ static struct option long_options[] = {
   { "weight", required_argument, NULL, 'w' },
   { "landmark-file", required_argument, NULL, 'm' },
   { "landmark-effects", no_argument, NULL, 'e' },
+  { "connect-all-effects", no_argument, NULL, 'E' },
+  { "connect-all-preconds", no_argument, NULL, 'P' },
   { 0, 0, 0, 0 }
 };
-static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:e";
+static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:ePE";
 
 
 /* Displays help. */
@@ -103,8 +105,7 @@ static void display_help() {
             << "  -l l,  --limit=l\t"
             << "search no more than l plans" << std::endl
             << "  -r,    --random-open-conditions" << std::endl
-            << "\t\t\tadd open conditions in random order"
-            << std::endl
+            << "\t\t\tadd open conditions in random order" << std::endl
             << "  -S s,  --seed=s\t"
             << "uses s as seed for random number generator" << std::endl
             << "  -s s,  --search-algorithm=s" << std::endl
@@ -126,8 +127,7 @@ static void display_help() {
             << "display version information and exit" << std::endl
             << "  -W[n], --warnings[=n]\t"
             << "determines how warnings are treated;" << std::endl
-            << "\t\t\t  0 supresses warnings; 1 displays warnings;"
-            << std::endl
+            << "\t\t\t  0 supresses warnings; 1 displays warnings;" << std::endl
             << "\t\t\t  2 treats warnings as errors" << std::endl
             << "  -w,    --weight=w\t"
             << "weight to use with heuristic (default is 1)" << std::endl
@@ -135,6 +135,12 @@ static void display_help() {
             << "use landmarks from the specified file" << std::endl
             << "  -e,    --landmark_effects" << std::endl
             << "\t\t\tadd effects to landmarks" << std::endl
+            << "  -E,    --connect-all-effects" << std::endl
+            << "\t\t\twhen adding a new step connect it" << std::endl
+            << "\t\t\tto as many open conditions as possible" << std::endl
+            << "  -P,    --connect-all-preconds" << std::endl
+            << "\t\t\twhen adding a new step connect its" << std::endl
+            << "\t\t\tpreconds to as many effects as possible" << std::endl
             << "  file ...\t\t"
             << "files containing domain and problem descriptions;" << std::endl
             << "\t\t\t  if none, descriptions are read from standard input"
@@ -318,6 +324,12 @@ int main(int argc, char* argv[]) {
       break;
     case 'e':
       params.landmark_effects = true;
+      break;
+    case 'E':
+      params.auto_connect_effects = true;
+      break;
+    case 'P':
+      params.auto_connect_preconds = true;
       break;
     case ':':
     default:

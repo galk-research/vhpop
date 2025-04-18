@@ -179,7 +179,20 @@ VHPOP can use a landmark graph using the -m flag.
 If the heuristic is set to OL or LM, the landmark graph is only used to
 compute the heuristic.  Otherwise, the landmarks are added as preconditions 
 of dummy actions to the initial plan in order to guide the planner.
-Using the -e flag adds the landmarks also as effects of the dummy actions. 
+
+
+Miscellaneous flags
+----------------------
+
+  -g <groud actions> use ground actions only.
+  -T <time limit> specifies the time limit for the search in minutes.
+  -S <seed> specifies the random seed to use.
+  -e <landmark effects> adds landmarks also as effects of the dummy actions.
+  -v <verbosity> specifies the verbosity of the output.
+  -E <connect all effects> try to connect effects of an action
+                      to as many open conditions as possible.
+  -P <connect all preconds> try to connect preconditions of an action
+                      to other action's effects if possible.
 
 
 Plans for Future Improvements

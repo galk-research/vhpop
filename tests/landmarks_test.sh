@@ -3,25 +3,26 @@
 # Define an array of file name pairs (each pair is space-separated)
 file_pairs=(
     "examples/gripper-domain.pddl examples/gripper-2.pddl"
-    "examples/gripper-domain.pddl examples/gripper-4.pddl"
-    "examples/gripper-domain.pddl examples/gripper-6.pddl"
-    "examples/gripper-domain.pddl examples/gripper-8.pddl"
-    "examples/gripper-domain.pddl examples/gripper-10.pddl"
-    "examples/hanoi-domain.pddl examples/hanoi-3.pddl"
-    "examples/hanoi-3-domain.pddl examples/hanoi-n-3.pddl"
-    "examples/grid-domain.pddl examples/simple-grid2.pddl"
-    "examples/grid-domain.pddl examples/simple-grid3.pddl"
-    "examples/logistics-domain.pddl examples/logistics-a.pddl"
-    "examples/logistics-domain.pddl examples/logistics-b.pddl"
-    "examples/logistics-domain.pddl examples/logistics-c.pddl"
-    "examples/logistics-domain.pddl examples/logistics-d.pddl"
-    "examples/rocket-domain.pddl examples/rocket-ext-a.pddl"
-    "examples/rocket-domain.pddl examples/rocket-ext-b.pddl"
-    "examples/simple-blocks-domain.pddl examples/bw-large-a.pddl"
-    "examples/simple-blocks-domain.pddl examples/bw-large-b.pddl"
-    "examples/simple-blocks-domain.pddl examples/bw-large-d.pddl"
-    "examples/monkey-domain.pddl examples/monkey-test1.pddl"
-    "examples/bulldozer-domain.pddl examples/get-back-jack.pddl"
+    # "examples/gripper-domain.pddl examples/gripper-4.pddl"
+    # "examples/gripper-domain.pddl examples/gripper-6.pddl"
+    # "examples/gripper-domain.pddl examples/gripper-8.pddl"
+    # "examples/gripper-domain.pddl examples/gripper-10.pddl"
+    # "examples/hanoi-domain.pddl examples/hanoi-3.pddl"
+    # "examples/hanoi-3-domain.pddl examples/hanoi-n-3.pddl"
+    # "examples/grid-domain.pddl examples/simple-grid2.pddl"
+    # "examples/grid-domain.pddl examples/simple-grid3.pddl"
+    # "examples/logistics-domain.pddl examples/logistics-a.pddl"
+    # "examples/logistics-domain.pddl examples/logistics-b.pddl"
+    # "examples/logistics-domain.pddl examples/logistics-c.pddl"
+    # "examples/logistics-domain.pddl examples/logistics-d.pddl"
+    # "examples/rocket-domain.pddl examples/rocket-ext-a.pddl"
+    # "examples/rocket-domain.pddl examples/rocket-ext-b.pddl"
+    # "examples/simple-blocks-domain.pddl examples/bw-large-a.pddl"
+    # "examples/simple-blocks-domain.pddl examples/bw-large-b.pddl"
+    # "examples/simple-blocks-domain.pddl examples/bw-large-d.pddl"
+    # "examples/monkey-domain.pddl examples/monkey-test1.pddl"
+    # "examples/bulldozer-domain.pddl examples/get-back-jack.pddl"
+    # "examples/blocks-world-domain.pddl examples/sussman-anomaly.pddl"
 )
 
 extract_plans_generated() {
@@ -38,10 +39,8 @@ extract_plan_length() {
 }
 
 
-# h='-h ADDR/ADDR_WORK/BUC/LIFO'
-h='-h ADDR/OL'
-# f='-f {n,s}LR/{l}MW_add -l 12000 -f {n,s}LR/{u}MW_add/{l}MW_add -l 100000 -f {n,s,l}LR -l 240000 -f {n,s,u}LR/{l}LR -l unlimited'
-f=''
+h='-h ADDR/ADDR_WORK/BUC/LIFO'
+f='-f {n,s}LR/{l}MW_add -l 12000 -f {n,s}LR/{u}MW_add/{l}MW_add -l 100000 -f {n,s,l}LR -l 240000 -f {n,s,u}LR/{l}LR -l unlimited'
 
 landmark_extraction_path=$1
 
@@ -91,29 +90,32 @@ for pair in "${file_pairs[@]}"; do
     python3 $landmark_extraction_path --alias seq-sat-lama-2011 $domain $problem > $tmp1
 
 
-    landmarks_cmd="./vhpop -g -v1 --landmark-file=$tmp1 $h $f $domain $problem"
-    no_landmarks_cmd="./vhpop -g -v1 $h $f $domain $problem"
+    landmarks_cmd="./vhpop -g -v5 --landmark-file=$tmp1 $h $f $domain $problem"
+    no_landmarks_cmd="./vhpop -g -v5 $h $f $domain $problem"
+    # no_landmarks_cmd="./vhpop -g -v4 $h $f $domain $problem"
 
 
-    # Run both commands in parallel and get their PIDs
-    $landmarks_cmd > "$tmp2" 2>&1 & pid1=$!
-    $no_landmarks_cmd > "$tmp3" 2>&1 & pid2=$!
+    # Run both commands with a 5-second timeout each
+    $landmarks_cmd > "$tmp2" 2>&1
+    status1=$?
+    $no_landmarks_cmd > "$tmp3" 2>&1
+    status2=$?
 
-    # Wait for at most 5 seconds
-    sleep 10
+    cat $tmp2 > output.txt
+    exit
+
+
 
     skip=false
 
-    # Check if either process is still running and kill if necessary
-    if ps -p $pid1 > /dev/null; then
+    # timeout exits with code 124 if the command times out
+    if [ $status1 -eq 124 ]; then
         echo "landmarks_cmd did not finish within timeout" >> "$tmp2"
-        kill $pid1
         skip=true
     fi
 
-    if ps -p $pid2 > /dev/null; then
+    if [ $status2 -eq 124 ]; then
         echo "no_landmarks_cmd did not finish within timeout" >> "$tmp3"
-        kill $pid2
         skip=true
     fi
 
@@ -122,7 +124,6 @@ for pair in "${file_pairs[@]}"; do
         timeout_count=$(( timeout_count + 1 ))
         continue
     fi
-
 
     plans_generated_with_landmarks=$(extract_plans_generated "$tmp2")
     plans_generated_without_landmarks=$(extract_plans_generated "$tmp3")
@@ -135,7 +136,7 @@ for pair in "${file_pairs[@]}"; do
 
     plan_length_with_landmarks=$(extract_plan_length "$tmp2")
     plan_length_without_landmarks=$(extract_plan_length "$tmp3")
-
+    
     # Validate extracted numbers
     if ! [[ "$plans_generated_with_landmarks" =~ ^[0-9]+$ ]]; then
         echo "Error: Could not extract valid plans number from version 1"

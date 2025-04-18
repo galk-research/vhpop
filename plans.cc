@@ -63,6 +63,8 @@ static PredicateAchieverMap achieves_neg_pred;
 static bool static_pred_flaw;
 /* Vector of landmark actions. */
 std::vector<const Action*>* landmark_actions;
+/* The atoms of the initial state */
+static unordered_set<const Atom*> init_atoms;
 
 /* ====================================================================== */
 /* Link */
@@ -640,7 +642,7 @@ const Plan* Plan::plan(const Problem& problem, const Parameters& p,
     }
   }
   if (need_pg) {
-    planning_graph = new PlanningGraph(problem, *params);
+    planning_graph = new PlanningGraph(problem, *params, &init_atoms);
   } else {
     planning_graph = NULL;
   }
@@ -667,6 +669,9 @@ const Plan* Plan::plan(const Problem& problem, const Parameters& p,
          ei != ia.effects().end(); ei++) {
       const Literal& literal = (*ei)->literal();
       achieves_pred[literal.predicate()].insert(std::make_pair(&ia, *ei));
+
+      const Atom* atom = dynamic_cast<const Atom*>(&literal);
+      init_atoms.insert(atom);
     }
     for (TimedActionTable::const_iterator ai = problem.timed_actions().begin();
          ai != problem.timed_actions().end(); ai++) {
@@ -1655,8 +1660,11 @@ void Plan::handle_open_condition(PlanList& plans,
     }
     const Negation* negation = dynamic_cast<const Negation*>(literal);
     if (negation != NULL) {
-      new_cw_link(plans, problem->init_action().effects(),
-                  *negation, open_cond);
+      Plan* new_plan;
+      if (new_cw_link(&new_plan, problem->init_action().effects(), *negation,
+                      open_cond) == 1) {
+        plans.push_back(new_plan);
+      }
     }
   } else {
     const Disjunction* disj = open_cond.disjunction();
@@ -1803,7 +1811,7 @@ void Plan::add_step(PlanList& plans, const Literal& literal,
     if (action.name().substr(0, 1) != "<") {
       const Effect& effect = *(*ai).second;
       new_link(plans, Step(num_steps() + 1, action), effect,
-               literal, open_cond);
+               literal, open_cond, false, params->auto_connect_effects, params->auto_connect_preconds);
     }
   }
 }
@@ -1843,7 +1851,8 @@ bool Plan::reusable_steps(int& refinements, const Literal& literal,
   }
   const Negation* negation = dynamic_cast<const Negation*>(&literal);
   if (negation != NULL) {
-    count += new_cw_link(dummy, problem->init_action().effects(),
+    Plan* dummy_plan;
+    count += new_cw_link(&dummy_plan, problem->init_action().effects(),
                          *negation, open_cond, true);
   }
   refinements = count;
@@ -1876,16 +1885,149 @@ void Plan::reuse_step(PlanList& plans, const Literal& literal,
   }
 }
 
+/* Connect the new step to as many open conditions as possible */
+Plan* Plan::connect_effects(Plan* plan, const Step& step) const {
+  bool changed = false;
+  for (const Chain<OpenCondition>* occ = plan->open_conds(); occ != NULL;
+       occ = occ->tail) {
+    const OpenCondition& open_cond = occ->head;
+    if (!plan->orderings().possibly_before(step.id(), StepTime::AT_START,
+                                               open_cond.step_id(),
+                                               StepTime::AT_START)) {
+      continue;
+    }
+    const ActionEffectMap* achievers = literal_achievers(*open_cond.literal());
+    const ActionEffectMap::const_iterator ai = achievers->find(&step.action());
+    if (ai != achievers->end()) {
+      const Effect& effect = *(*ai).second;
+      BindingList mgu;
+      if (plan->bindings_->unify(mgu, effect.literal(), step.id(),
+                                     *open_cond.literal(),
+                                     open_cond.step_id())) {
+        Plan* new_plan;
+        int result =
+            plan->make_link(&new_plan, step, effect, *open_cond.literal(),
+                                open_cond, mgu);
+
+        if (result != 0) {
+          changed = true;
+        }
+
+        plan = new_plan;
+      }
+    }
+  }
+  if (changed) {
+    return plan;
+  }
+  return nullptr;
+}
+
+/* Connect the new step's precondition to as many effects as possible */
+Plan* Plan::connect_preconds(Plan* plan, const Step& step) const {
+  unordered_map<const Action*, const Step*> action_step_map;
+  for (const Chain<Step>* sc = plan->steps(); sc != NULL; sc = sc->tail) {
+    const Step& s = sc->head;
+    if (!plan->orderings_->possibly_before(s.id(), StepTime::AT_START,
+                                               step.id(), StepTime::AT_START)) {
+      continue;
+    }
+    action_step_map.insert(make_pair(&s.action(), &s));
+  }
+
+  bool changed = false;
+
+  for (const Chain<OpenCondition>* occ = plan->open_conds(); occ != NULL;
+       occ = occ->tail) {
+    const OpenCondition& open_cond = occ->head;
+    if (open_cond.step_id() != step.id()) {
+      continue;
+    }
+
+    if (typeid(*open_cond.literal()) == typeid(Negation)) {
+      Negation* negation =
+        const_cast<Negation*>(dynamic_cast<const Negation*>(open_cond.literal()));
+      
+      auto it = init_atoms.find(&negation->atom());
+      if (it == init_atoms.end()) {
+        Plan* new_plan;
+        int result = plan->new_cw_link(&new_plan,
+                                        problem->init_action().effects(),
+                                        *negation, open_cond);
+
+        plan = new_plan;
+
+        if (result != 0) {
+          changed = true;
+        }
+        break;
+      }
+    }
+
+    const ActionEffectMap* achievers = literal_achievers(*open_cond.literal());
+
+    for (const auto& pair : *achievers) {
+      const Action* action = pair.first;
+      const Effect* effect = pair.second;
+
+      auto it = action_step_map.find(action);
+      if (it == action_step_map.end()) {
+        continue;
+      }
+      const Step& s = *(*it).second;
+      BindingList mgu;
+      if (plan->bindings_->unify(mgu, effect->literal(), s.id(),
+                                     *open_cond.literal(),
+                                     open_cond.step_id())) {
+        Plan* new_plan;
+        int result =
+            plan->make_link(&new_plan, s, *effect, *open_cond.literal(),
+                                open_cond, mgu);
+
+        plan = new_plan;
+
+        if (result != 0) {
+          changed = true;
+        }
+        break;
+
+      }
+    }
+  }
+  if (changed) {
+    return plan;
+  }
+  return nullptr;
+}
 
 /* Adds plans to the given plan list with a link from the given step
    to the given open condition added. */
 int Plan::new_link(PlanList& plans, const Step& step, const Effect& effect,
                    const Literal& literal, const OpenCondition& open_cond,
-                   bool test_only) const {
+                   bool test_only, bool auto_connect_effects, bool auto_connect_preconds) const {
   BindingList mgu;
   if (bindings_->unify(mgu, effect.literal(), step.id(),
                        literal, open_cond.step_id())) {
-    return make_link(plans, step, effect, literal, open_cond, mgu, test_only);
+    Plan* new_plan = nullptr;
+    int result = make_link(&new_plan, step, effect, literal, open_cond, mgu, test_only);
+    if (!test_only && result) {
+      plans.push_back(new_plan);
+
+      Plan* orig = new_plan;
+
+      Plan* result = auto_connect_effects ? connect_effects(orig, step) : nullptr;
+
+      if (auto_connect_preconds) {
+        Plan* in = result ? result : orig;
+        Plan* pre = connect_preconds(in, step);
+        result = pre ? pre : result;
+      }
+
+      if (result) {
+        plans.push_back(result);
+      }
+    }
+    return result;
   } else {
     return 0;
   }
@@ -1895,7 +2037,7 @@ int Plan::new_link(PlanList& plans, const Step& step, const Effect& effect,
 /* Adds plans to the given plan list with a link from the given step
    to the given open condition added using the closed world
    assumption. */
-int Plan::new_cw_link(PlanList& plans, const EffectList& effects,
+int Plan::new_cw_link(Plan** plan, const EffectList& effects,
                       const Negation& negation, const OpenCondition& open_cond,
                       bool test_only) const {
   const Atom& goal = negation.atom();
@@ -1944,14 +2086,14 @@ int Plan::new_cw_link(PlanList& plans, const EffectList& effects,
         orderings(), *bindings);
         size_t new_num_landmark_cond = num_landmark_conds();
         const Chain<const Formula*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
-        plans.push_back(new Plan(steps(), num_steps(),
+        *plan = new Plan(steps(), num_steps(),
                                  new_links, num_links() + 1,
                                  orderings(), *bindings,
                                  new_unsafes, new_num_unsafes,
                                  new_open_conds, new_num_open_conds,
                                  new_landmark_conds,
                                  new_num_landmark_cond,
-                                 mutex_threats(), this, num_landmarks()));
+                                 mutex_threats(), this, num_landmarks());
       }
       count++;
     }
@@ -1962,10 +2104,9 @@ int Plan::new_cw_link(PlanList& plans, const EffectList& effects,
   return count;
 }
 
-
 /* Returns a plan with a link added from the given effect to the
    given open condition. */
-int Plan::make_link(PlanList& plans, const Step& step, const Effect& effect,
+int Plan::make_link(Plan** plan, const Step& step, const Effect& effect,
                     const Literal& literal, const OpenCondition& open_cond,
                     const BindingList& unifier, bool test_only) const {
   /*
@@ -2133,13 +2274,13 @@ int Plan::make_link(PlanList& plans, const Step& step, const Effect& effect,
     /* Adds the new plan. */
     size_t new_num_landmark_cond = num_landmark_conds();
     const Chain<const Formula*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
-    plans.push_back(new Plan(new_steps, new_num_steps, new_links,
+    *plan = new Plan(new_steps, new_num_steps, new_links,
                              num_links() + 1, *new_orderings, *bindings,
                              new_unsafes, new_num_unsafes,
                              new_open_conds, new_num_open_conds,
                              new_landmark_conds, 
                              new_num_landmark_cond,
-                             new_mutex_threats, this, num_landmarks()));
+                             new_mutex_threats, this, num_landmarks());
   }
   return 1;
 }
