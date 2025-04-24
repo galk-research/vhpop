@@ -788,7 +788,7 @@ bool Bindings::unify(const Literal& l1, size_t id1,
 bool Bindings::unify(BindingList& mgu, const Literal& l1, size_t id1,
                      const Literal& l2, size_t id2) const {
   if (l1.id() > 0 && l2.id() > 0) {
-    /* Both literals are fully instantiated. */
+    /* Both literals are fully instantiated. */ 
     return &l1 == &l2;
   } else if (typeid(l1) != typeid(l2)) {
     /* Not the same type of literal. */
@@ -817,6 +817,7 @@ bool Bindings::unify(BindingList& mgu, const Literal& l1, size_t id1,
       Object obj2 = lg->term(i).as_object();
       if (term1.object()) {
         if (term1 != obj2) {
+    
           return false;
         }
       } else {
@@ -824,17 +825,20 @@ bool Bindings::unify(BindingList& mgu, const Literal& l1, size_t id1,
         std::map<Variable, Term>::const_iterator b = bind.find(var1);
         if (b != bind.end()) {
           if ((*b).second != obj2) {
+      
             return false;
           }
         } else {
           Term bt = binding(term1, idl);
           if (bt.object()) {
             if (bt != obj2) {
+        
               return false;
             }
           } else {
             if (!TypeTable::subtype(TermTable::type(obj2),
                                     TermTable::type(term1))) {
+        
               return false;
             }
             mgu.push_back(Binding(var1, idl, obj2, 0, true));
@@ -863,6 +867,7 @@ bool Bindings::unify(BindingList& mgu, const Literal& l1, size_t id1,
            */
           if (term1 != term2) {
             /* The two terms are different objects. */
+      
             return false;
           }
         } else {
@@ -872,6 +877,7 @@ bool Bindings::unify(BindingList& mgu, const Literal& l1, size_t id1,
           if (!TypeTable::subtype(TermTable::type(term1),
                                   TermTable::type(term2))) {
             /* Incompatible term types. */
+      
             return false;
           }
           mgu.push_back(Binding(term2.as_variable(), id2, term1, 0, true));
@@ -884,11 +890,13 @@ bool Bindings::unify(BindingList& mgu, const Literal& l1, size_t id1,
           if (!TypeTable::subtype(TermTable::type(term2),
                                   TermTable::type(term1))) {
             /* Incompatible term types. */
+      
             return false;
           }
         } else if (!TypeTable::compatible(TermTable::type(term1),
                                           TermTable::type(term2))) {
           /* Incompatible term types. */
+    
           return false;
         }
         mgu.push_back(Binding(term1.as_variable(), id1, term2, id2, true));

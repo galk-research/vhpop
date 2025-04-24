@@ -1210,8 +1210,8 @@ Heuristic& Heuristic::operator=(const std::string& name) {
       needs_pg_ = true;
     } else if (strcasecmp(n, "PL") == 0) {
       h_.push_back(PL);
-    } else if (strcasecmp(n, "OL") == 0) {
-      h_.push_back(OL);
+    } else if (strcasecmp(n, "UCPOPLM") == 0) {
+      h_.push_back(UCPOPLM);
     } else if (strcasecmp(n, "LM") == 0) {
       h_.push_back(LM);
     } else {
@@ -1261,7 +1261,7 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
     case PL:
       rank.push_back(plan.num_steps());
       break;
-    case OL:
+    case UCPOPLM:
       rank.push_back(plan.num_steps() + plan.num_open_conds() +
                      plan.num_landmark_conds());
       break;
@@ -1569,6 +1569,12 @@ std::ostream& operator<<(std::ostream& os, const SelectionCriterion& c) {
     break;
   case SelectionCriterion::REUSE:
     os << "REUSE";
+    break;
+  case SelectionCriterion::LMO:
+    os << "LMO";
+    break;
+  case SelectionCriterion::RLMO:
+    os << "RLMO";
     break;
   case SelectionCriterion::LC:
     os << "LC_";
@@ -1882,6 +1888,10 @@ FlawSelectionOrder& FlawSelectionOrder::operator=(const std::string& name) {
       criterion.order = SelectionCriterion::LR;
     } else if (strcasecmp(n, "MR") == 0) {
       criterion.order = SelectionCriterion::MR;
+    } else if (strcasecmp(n, "LMO") == 0) {
+      criterion.order = SelectionCriterion::LMO;
+    } else if (strcasecmp(n, "RLMO") == 0) {
+      criterion.order = SelectionCriterion::RLMO;
     } else {
       if (criterion.non_separable || criterion.separable) {
         /* No other orders that the above can be used with threats. */
@@ -2198,6 +2208,36 @@ int FlawSelectionOrder::select_open_cond(FlawSelection& selection,
               std::cerr << "selecting ";
               open_cond.print(std::cerr, Bindings::EMPTY);
               std::cerr << " by criterion " << criterion << std::endl;
+            }
+            break;
+          case SelectionCriterion::LMO:
+            if (c < selection.criterion ||
+                open_cond.landmark_layer() < selection.rank) {
+              selection.flaw = &open_cond;
+              selection.criterion = c;
+              selection.rank = open_cond.landmark_layer();
+              last_criterion = selection.rank == 0 ? c-1 : c;
+              if (verbosity > 1) {
+                std::cerr << "selecting ";
+                open_cond.print(std::cerr, Bindings::EMPTY);
+                std::cerr << " by criterion " << criterion << " with rank "
+                          << open_cond.landmark_layer() << std::endl;
+              }
+            }
+            break;
+          case SelectionCriterion::RLMO:
+            if (c < selection.criterion ||
+                open_cond.landmark_layer() > selection.rank) {
+              selection.flaw = &open_cond;
+              selection.criterion = c;
+              selection.rank = open_cond.landmark_layer();
+              last_criterion = c;
+              if (verbosity > 1) {
+                std::cerr << "selecting ";
+                open_cond.print(std::cerr, Bindings::EMPTY);
+                std::cerr << " by criterion " << criterion << " with rank "
+                          << open_cond.landmark_layer() << std::endl;
+              }
             }
             break;
           case SelectionCriterion::RANDOM:

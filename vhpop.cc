@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
           params.flaw_orders.clear();
           no_flaw_order = false;
         }
-        if (strstr(optarg, "x") != NULL) {
+        if (strstr(optarg, "x") != NULL || strstr(optarg, "m") != NULL) {
           params.landmarks_h = true;
         }
         params.flaw_orders.push_back(FlawSelectionOrder(optarg));
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
     case 'h':
       try {
         params.heuristic = optarg;
-        if (strstr(optarg, "OL") != NULL || strstr(optarg, "LM") != NULL) {
+        if (strstr(optarg, "LM") != NULL) {
           params.landmarks_h = true;
         }
       } catch (const InvalidHeuristic& e) {

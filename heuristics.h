@@ -278,7 +278,7 @@ private:
   /* Heuristics. */
   typedef enum { LIFO, FIFO, OC, UC, BUC, S_PLUS_OC, UCPOP,
                  ADD, ADD_COST, ADD_WORK, ADDR, ADDR_COST, ADDR_WORK,
-                 MAKESPAN, PL, OL, LM, MAX, MAX_COST, MAX_WORK, FF, FF_COST, FFR, FFR_COST } HVal;
+                 MAKESPAN, PL, UCPOPLM, LM, MAX, MAX_COST, MAX_WORK, FF, FF_COST, FFR, FFR_COST } HVal;
 
   /* The selected heuristics. */
   std::vector<HVal> h_;
@@ -323,7 +323,7 @@ struct InvalidFlawSelectionOrder : public std::runtime_error {
 struct SelectionCriterion {
   /* A selection order. */
   typedef enum { LIFO, FIFO, RANDOM, LR, MR,
-                 NEW, REUSE, LC, MC, LW, MW } OrderType;
+                 NEW, REUSE, LC, MC, LW, MW, LMO, RLMO } OrderType;
   /* A heuristic. */
   typedef enum { ADD, MAKESPAN } RankHeuristic;
 

@@ -78,7 +78,7 @@ functions:
   ADDR_COST uses the ADDR cost heuristic.
   ADDR_WORK uses the ADDR work heuristic.
   PL uses h(p) = |S(p)| for plan p.
-  OL uses h(p) = |S(p)| + |OC(p)| + |Landmarks(p)| for plan p.
+  UCPOPLM uses h(p) = |S(p)| + |OC(p)| + |Landmarks(p)| for plan p.
   LM uses h(p) = |S(p)| + |Landmarks(p)| for plan p.
   MAX_COST uses the maximum cost heuristic.
   MAX uses h(p) = |S(p)| + w*MAX_COST for plan p.
@@ -110,7 +110,8 @@ ordering criteria are "LIFO", "FIFO", "R" (random), "LR" (least
 refinements first), "MR" (opposite of LR), "New" (open conditions that
 can be resolved with new step first), "Reuse" (opposite of New),
 "MC_h" (most cost with heuristic h), "LC_h" (opposite of MC_h), "MW_h"
-(most work with heuristic h), "LW_h" (opposite of MW_h).
+(most work with heuristic h), "LW_h" (opposite of MW_h),
+"LMO" (landmarks order), "RLMO" (reversed landmarks order).
 
 Flaws are matched with selection criteria, and it is required for
 completeness that every flaw matches at least one selection criterion
@@ -176,7 +177,7 @@ Landmarks
 ---------
 
 VHPOP can use a landmark graph using the -m flag.
-If the heuristic is set to OL or LM, the landmark graph is only used to
+If the heuristic is set to UCPOPLM or LM, the landmark graph is only used to
 compute the heuristic.  Otherwise, the landmarks are added as preconditions 
 of dummy actions to the initial plan in order to guide the planner.
 

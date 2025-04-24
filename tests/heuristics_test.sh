@@ -38,7 +38,7 @@ extract_plan_length() {
 
 # h='-h ADDR/ADDR_WORK/BUC/LIFO'
 h_o='-h OC'
-h_ol='-h OL'
+h_ol='-h UCPOPLM'
 h_l='-h L'
 # f='-f {n,s}LR/{l}MW_add -l 12000 -f {n,s}LR/{u}MW_add/{l}MW_add -l 100000 -f {n,s,l}LR -l 240000 -f {n,s,u}LR/{l}LR -l unlimited'
 f=''
@@ -84,13 +84,13 @@ for pair in "${file_pairs[@]}"; do
     echo "Running $problem"
 
     o_cmd="./vhpop -g -x -v1 --landmark-file=$tmp1 $h_o $f examples/$domain examples/$problem"
-    ol_cmd="./vhpop -g -x -v1 --landmark-file=$tmp1 $h_ol $f examples/$domain examples/$problem"
+    ucpoplm_cmd="./vhpop -g -x -v1 --landmark-file=$tmp1 $h_ucpoplm $f examples/$domain examples/$problem"
     l_cmd="./vhpop -g -x -v1 --landmark-file=$tmp1 $h_l $f examples/$domain examples/$problem"
 
 
     timeout 5s $o_cmd > "$tmp2" 2>&1
     status1=$?
-    timeout 5s $ol_cmd > "$tmp3" 2>&1
+    timeout 5s $ucpoplm_cmd > "$tmp3" 2>&1
     status2=$?
     timeout 5s $l_cmd > "$tmp4" 2>&1
     status3=$?
@@ -151,7 +151,7 @@ print_table() {
 
     echo ""
     echo "                      $title                         "
-    echo "|       Problem       |    OC     |    OL     |     L     |"
+    echo "|       Problem       |    OC     |  UCPOPLM  |     L     |"
     echo "|---------------------|-----------|-----------|-----------|"
     for i in "${!problems[@]}"; do
         printf "| %-19s | %-9s | %-9s | %-9s |\n" \

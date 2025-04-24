@@ -159,5 +159,32 @@ void read_landmarks_file(string file_name, const Problem& problem) {
             add_edge(line, current_node_id);
         }
     }
+
+    lm_graph.compute_landmark_layers();
+
     infile.close();
+}
+
+void LandmarkGraph::compute_landmark_layers() {
+  std::queue<int> q;
+
+  for (auto& [id, lm] : landmarks) {
+    lm.landmark_layer = -1;
+    if (lm.is_initial_state) {
+      lm.landmark_layer = 0;
+      q.push(id);
+    }
+  }
+
+  while (!q.empty()) {
+    int cur_id = q.front();
+    q.pop();
+    int cur_layer = landmarks[cur_id].landmark_layer;
+
+    for (auto& e : landmarks[cur_id].edges) {
+      auto& to_lm = landmarks[e.to];
+        to_lm.landmark_layer = max(cur_layer + 1, to_lm.landmark_layer);
+        q.push(e.to);
+    }
+  }
 }

@@ -1,16 +1,16 @@
 #ifndef LANDMARKS_H
 #define LANDMARKS_H
 
-#include <iostream>
 #include <fstream>
-#include <string>
-#include <vector>
+#include <iostream>
 #include <map>
 #include <sstream>
-#include <iostream>
+#include <string>
+#include <vector>
+#include <queue>
 
-#include "plans.h"
 #include "formulas.h"
+#include "plans.h"
 #include "problems.h"
 
 using namespace std;
@@ -22,17 +22,18 @@ struct Edge {
 
     friend ostream& operator<<(ostream& os, const Edge& edge) {
         return os << "Edge(from: " << edge.from << ", to: " << edge.to << ", type: " << edge.type << ")";
-    }
+    };
 };
 
 struct Landmark {
     bool is_initial_state;
     bool is_goal_state;
+    int landmark_layer;
     int id;
-    Formula* formula;
+    const Formula* formula;
     vector<Edge> edges;
 
-    Landmark() : is_initial_state(true), is_goal_state(true), id(-1), formula(nullptr) {}
+    Landmark() : is_initial_state(true), is_goal_state(true), landmark_layer(-1), id(-1), formula(nullptr) {}
 
     ~Landmark() {
         if (formula != nullptr) {
@@ -40,7 +41,7 @@ struct Landmark {
         }
     }
 
-    void set_formula(Formula* new_formula) {
+    void set_formula(const Formula* new_formula) {
         if (formula != nullptr) {
             Formula::unregister_use(formula);
         }
@@ -54,12 +55,28 @@ struct Landmark {
         this->id = new_id;
     }
 
+    void set_landmark_layer(int new_layer) {
+        this->landmark_layer = new_layer;
+    }
+
     friend ostream& operator<<(ostream& os, const Landmark& lm) {
-        os << "Landmark(id: " << lm.id << ", is_initial_state: " << (lm.is_initial_state ? "true" : "false") << ", is_goal_state: " << (lm.is_goal_state ? "true" : "false") << ", edges: [" << endl;
-        for (size_t i = 0; i < lm.edges.size(); ++i) {
-            os << '\t' <<lm.edges[i] << endl;;
+        lm.formula->print(os, 0, Bindings::EMPTY);
+        os << "(id: " << lm.id;
+
+        if (lm.is_initial_state) {
+            os << ", Initial State";
         }
-        os << "])";
+        if (lm.is_goal_state) {
+            os << ", Goal State";
+        }
+
+        os << ", layer: " << lm.landmark_layer;
+        os << ", edges: [" << endl;
+
+        for (const auto& e : lm.edges) {
+            os << '\t' << e << endl;
+        }
+        os << "] )";
         return os;
     }
 };
@@ -78,6 +95,8 @@ struct LandmarkGraph {
         os << "})";
         return os;
     }
+
+    void compute_landmark_layers();
 };
 
 extern LandmarkGraph lm_graph;

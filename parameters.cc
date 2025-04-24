@@ -56,7 +56,8 @@ Parameters::Parameters()
       landmark_effects(false),
       landmarks_h(false),
       auto_connect_effects(false),
-      auto_connect_preconds(false) {
+      auto_connect_preconds(false),
+      landmark_level(3) {
   flaw_orders.push_back(FlawSelectionOrder("UCPOP")),
   search_limits.push_back(std::numeric_limits<unsigned int>::max());
 }

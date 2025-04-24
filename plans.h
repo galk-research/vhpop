@@ -39,6 +39,7 @@ struct Problem;
 struct Bindings;
 struct ActionEffectMap;
 struct FlawSelectionOrder;
+struct Landmark;
 
 
 /* ====================================================================== */
@@ -176,7 +177,7 @@ struct Plan {
   size_t num_open_conds() const { return num_open_conds_; }
 
   /* Returns the landmark conditions of this plan. */
-  const Chain<const Formula*>* landmark_conds() const { return landmark_conds_; }
+  const Chain<const Landmark*>* landmark_conds() const { return landmark_conds_; }
 
   /* Returns the number of landmark conditions in this plan. */
   size_t num_landmark_conds() const { return num_landmark_conds_; }
@@ -201,7 +202,7 @@ struct Plan {
 
   /*  Removes a landmark condition when we remove an open condition that appears in a landmark.
       The function removes nothing if the open condition is not in a landmark. */
-  const Chain<const Formula*>* remove_landmark_cond(const OpenCondition& open_cond, size_t& num_landmark_conds) const;
+  const Chain<const Landmark*>* remove_landmark_cond(const OpenCondition& open_cond, size_t& num_landmark_conds) const;
 
 
 
@@ -262,7 +263,7 @@ private:
   /* Number of open conditions. */
   const size_t num_open_conds_;
   /* Chain of landmark conditions. */
-  const Chain<const Formula*>* landmark_conds_;
+  const Chain<const Landmark*>* landmark_conds_;
   /* Number of landmark conditions. */
   const size_t num_landmark_conds_;
   /* Chain of mutex threats. */
@@ -288,7 +289,7 @@ private:
        const Orderings& orderings, const Bindings& bindings,
        const Chain<Unsafe>* unsafes, size_t num_unsafes,
        const Chain<OpenCondition>* open_conds, size_t num_open_conds,
-       const Chain<const Formula*>* landmark_conds, size_t num_landmark_conds,
+       const Chain<const Landmark*>* landmark_conds, size_t num_landmark_conds,
        const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t num_landmarks = 0);
 
   /* Returns the next flaw to work on. */

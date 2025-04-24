@@ -27,23 +27,26 @@
 /* OpenCondition */
 
 /* Constructs an open condition. */
-OpenCondition::OpenCondition(size_t step_id, const Formula& condition, bool is_landmark)
-  : step_id_(step_id), condition_(&condition), is_landmark_(is_landmark) {
+OpenCondition::OpenCondition(size_t step_id, const Formula& condition, int landmark_layer)
+  : step_id_(step_id), condition_(&condition), is_landmark_(landmark_layer != -1),
+    landmark_layer_(landmark_layer) {
   Formula::register_use(condition_);
 }
 
 
 /* Constructs an open condition. */
 OpenCondition::OpenCondition(size_t step_id, const Literal& condition,
-                             FormulaTime when, bool is_landmark)
-  : step_id_(step_id), condition_(&condition), when_(when), is_landmark_(is_landmark) {
+                             FormulaTime when, int landmark_layer)
+  : step_id_(step_id), condition_(&condition), when_(when), is_landmark_(landmark_layer != -1),
+    landmark_layer_(landmark_layer) {
   Formula::register_use(condition_);
 }
 
 
 /* Constructs an open condition. */
 OpenCondition::OpenCondition(const OpenCondition& oc)
-  : step_id_(oc.step_id_), condition_(oc.condition_), when_(oc.when_), is_landmark_(oc.is_landmark_) {
+  : step_id_(oc.step_id_), condition_(oc.condition_), when_(oc.when_), is_landmark_(oc.is_landmark_),
+    landmark_layer_(oc.landmark_layer_) {
   Formula::register_use(condition_);
 }
 

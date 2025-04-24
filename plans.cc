@@ -119,22 +119,23 @@ struct PlanQueue : public std::priority_queue<const Plan*> {
 /* Id of goal step. */
 const size_t Plan::GOAL_ID = std::numeric_limits<size_t>::max();
 
-static bool is_landmark(const Chain<const Formula*>* landmark_conds, const Literal& l) {
-  for (const Chain<const Formula*>* fc = landmark_conds; fc != NULL; fc = fc->tail) {
-    const Formula* f = fc->head;
+static int landmark_layer(const Chain<const Landmark*>* landmark_conds, const Literal& l) {
+  for (const Chain<const Landmark*>* lc = landmark_conds; lc != NULL; lc = lc->tail) {
+    const Landmark* lm = lc->head;
+    const Formula* f = lm->formula;
     if (typeid(*f) == typeid(Disjunction)) {
       const Disjunction* disj = dynamic_cast<const Disjunction*>(f);
       const FormulaList& gs = disj->disjuncts();
       for (FormulaList::const_iterator fi = gs.begin(); fi != gs.end(); fi++) {
         if (&l == *fi) {
-          return true;
+          return lm->landmark_layer;
         }
       }
     } else if (&l == f) {
-      return true;
+      return lm->landmark_layer;
     }
   }
-  return false;
+  return -1;
 }
 
 
@@ -143,7 +144,7 @@ static bool is_landmark(const Chain<const Formula*>* landmark_conds, const Liter
 static bool add_goal(const Chain<OpenCondition>*& open_conds,
                      size_t& num_open_conds, BindingList& new_bindings,
                      const Formula& goal, size_t step_id, 
-                     const Chain<const Formula*>* landmark_conds,
+                     const Chain<const Landmark*>* landmark_conds,
                      bool test_only = false) {
   if (goal.tautology()) {
     return true;
@@ -170,7 +171,7 @@ static bool add_goal(const Chain<OpenCondition>*& open_conds,
                && PredicateTable::static_predicate(l->predicate()))) {
         open_conds =
           new Chain<OpenCondition>(OpenCondition(step_id, *l, when, 
-                                    is_landmark(landmark_conds, *l)),
+                                    landmark_layer(landmark_conds, *l)),
                                    open_conds);
       }
       num_open_conds++;
@@ -199,7 +200,7 @@ static bool add_goal(const Chain<OpenCondition>*& open_conds,
           if (!test_only) {
             open_conds = 
               new Chain<OpenCondition>(OpenCondition(step_id, *disj, 
-                                        is_landmark(landmark_conds, *l)),
+                                        landmark_layer(landmark_conds, *l)),
                                        open_conds);
           }
           num_open_conds++;
@@ -484,14 +485,6 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
   size_t num_open_conds = 0;
   /* Bindings introduced by goal. */
   BindingList new_bindings;
-  /* Add goals as open conditions. */
-  if (!add_goal(open_conds, num_open_conds, new_bindings,
-                goal_action->condition(), GOAL_ID, nullptr)) {
-    /* Goals are inconsistent. */
-    RCObject::ref(open_conds);
-    RCObject::destructive_deref(open_conds);
-    return NULL;
-  }
   /* Make chain of mutex threat place holder. */
   const Chain<MutexThreat>* mutex_threats =
     new Chain<MutexThreat>(MutexThreat(), NULL);
@@ -528,7 +521,7 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
   } else {
     orderings = new BinaryOrderings();
   }
-  const Chain<const Formula*>* landmark_conds = NULL;
+  const Chain<const Landmark*>* landmark_conds = NULL;
   size_t num_landmark_conds = 0;
   // insert landmarks into the initial plan to guide the planner
   if (params->landmarks) {
@@ -536,18 +529,26 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
       
       for (int i = 0; i < lm_graph.num_landmarks; i++) {
         Landmark* lm = &(lm_graph.landmarks[i]);
-        Formula* landmark_formula = lm->formula;
-        if (lm->is_goal_state || lm->is_initial_state) continue;
+        const Formula* landmark_formula = lm->formula;
+        if ((params->landmark_level == 0 && (lm->is_goal_state || lm->is_initial_state)) ||
+            (params->landmark_level == 1 && lm->is_initial_state) ||
+            (params->landmark_level == 2 && lm->is_goal_state)) {
+          continue;
+        }
 
         if (typeid(*landmark_formula) == typeid(Conjunction)) {
           const Conjunction* conj = dynamic_cast<const Conjunction*>(landmark_formula);
           const FormulaList& gs = conj->conjuncts();
           for (FormulaList::const_iterator fi = gs.begin(); fi != gs.end(); fi++) {
-              landmark_conds = new Chain<const Formula*>(&**fi, landmark_conds);
+              Landmark* new_lm = new Landmark();
+              new_lm->set_formula(*fi);
+              new_lm->landmark_layer = lm->landmark_layer;
+              landmark_conds = new Chain<const Landmark*>(new_lm, landmark_conds);
+
               num_landmark_conds++;
           }
         } else {
-          landmark_conds = new Chain<const Formula*>(landmark_formula, landmark_conds);
+          landmark_conds = new Chain<const Landmark*>(lm, landmark_conds);
           num_landmark_conds++;
         }
       }
@@ -611,6 +612,15 @@ const Plan* Plan::make_initial_plan(const Problem& problem) {
       }
       landmark_actions = landmarks;
     }
+  }
+
+  /* Add goals as open conditions. */
+  if (!add_goal(open_conds, num_open_conds, new_bindings,
+                goal_action->condition(), GOAL_ID, landmark_conds)) {
+    /* Goals are inconsistent. */
+    RCObject::ref(open_conds);
+    RCObject::destructive_deref(open_conds);
+    return NULL;
   }
 
   /* Return initial plan. */
@@ -990,7 +1000,7 @@ Plan::Plan(const Chain<Step>* steps, size_t num_steps,
         const Orderings& orderings, const Bindings& bindings,
         const Chain<Unsafe>* unsafes, size_t num_unsafes,
         const Chain<OpenCondition>* open_conds, size_t num_open_conds,
-        const Chain<const Formula*>* landmark_conds, size_t num_landmark_conds,
+        const Chain<const Landmark*>* landmark_conds, size_t num_landmark_conds,
         const Chain<MutexThreat>* mutex_threats, const Plan* parent, size_t num_landmarks)
   : steps_(steps), num_steps_(num_steps),
     links_(links), num_links_(num_links),
@@ -1097,24 +1107,25 @@ void Plan::refinements(PlanList& plans,
 
 /*  Removes a landmark condition when we remove an open condition that appears in a landmark.
     The function removes nothing if the open condition is not in a landmark. */
-const Chain<const Formula*>* Plan::remove_landmark_cond(const OpenCondition& open_cond, size_t& num_landmark_conds) const {
-  const Chain<const Formula*>* landmark_conds_ = landmark_conds();
+const Chain<const Landmark*>* Plan::remove_landmark_cond(const OpenCondition& open_cond, size_t& num_landmark_conds) const {
+  const Chain<const Landmark*>* landmark_conds_ = landmark_conds();
   if (!open_cond.is_landmark()) return landmark_conds_;
 
-  for (const Chain<const Formula*>* fc = landmark_conds_; fc != NULL; fc = fc->tail) {
-    const Formula* f = fc->head;
+  for (const Chain<const Landmark*>* lc = landmark_conds_; lc != NULL; lc = lc->tail) {
+    const Landmark* l = lc->head;
+    const Formula* f = l->formula;
     if (typeid(*f) == typeid(Disjunction)) {
       const Disjunction* disj = dynamic_cast<const Disjunction*>(f);
       const FormulaList& gs = disj->disjuncts();
       for (FormulaList::const_iterator fi = gs.begin(); fi != gs.end(); fi++) {
         if (&open_cond.condition() == *fi) {
           num_landmark_conds--;
-          return landmark_conds_->remove(f);
+          return landmark_conds_->remove(l);
         }
       }
     } else if (&open_cond.condition() == f) {
       num_landmark_conds--;
-      return landmark_conds_->remove(f);
+      return landmark_conds_->remove(l);
     }
 
   }
@@ -1753,7 +1764,7 @@ int Plan::handle_inequality(PlanList& plans, const Inequality& neq,
     if (bindings != NULL) {
       if (!test_only) {
         size_t new_num_landmark_cond = num_landmark_conds();
-        const Chain<const Formula*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
+        const Chain<const Landmark*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
         plans.push_back(new Plan(steps(), num_steps(), links(), num_links(),
                                  orderings(), *bindings,
                                  unsafes(), num_unsafes(),
@@ -2085,7 +2096,7 @@ int Plan::new_cw_link(Plan** plan, const EffectList& effects,
         link_threats(new_unsafes, new_num_unsafes, new_links->head, steps(),
         orderings(), *bindings);
         size_t new_num_landmark_cond = num_landmark_conds();
-        const Chain<const Formula*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
+        const Chain<const Landmark*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
         *plan = new Plan(steps(), num_steps(),
                                  new_links, num_links() + 1,
                                  orderings(), *bindings,
@@ -2273,7 +2284,7 @@ int Plan::make_link(Plan** plan, const Step& step, const Effect& effect,
 
     /* Adds the new plan. */
     size_t new_num_landmark_cond = num_landmark_conds();
-    const Chain<const Formula*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
+    const Chain<const Landmark*>* new_landmark_conds = remove_landmark_cond(open_cond, new_num_landmark_cond);
     *plan = new Plan(new_steps, new_num_steps, new_links,
                              num_links() + 1, *new_orderings, *bindings,
                              new_unsafes, new_num_unsafes,

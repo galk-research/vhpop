@@ -97,6 +97,9 @@ struct Parameters {
   bool auto_connect_effects;
   /* whether to connect an action to every possible effect*/
   bool auto_connect_preconds;
+  /* controls inclusion of initial/goal landmarks */
+  int landmark_level;
+
 
   /* Constructs default planning parameters. */
   Parameters();
