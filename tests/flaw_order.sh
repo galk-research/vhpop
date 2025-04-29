@@ -1,26 +1,12 @@
 #!/bin/bash
 
-file_pairs=(
-    "gripper-domain.pddl gripper-2.pddl"
-    "gripper-domain.pddl gripper-4.pddl"
-    "gripper-domain.pddl gripper-6.pddl"
-    "gripper-domain.pddl gripper-8.pddl"
-    "gripper-domain.pddl gripper-10.pddl"
-    "hanoi-domain.pddl hanoi-3.pddl"
-    "hanoi-3-domain.pddl hanoi-n-3.pddl"
-    "grid-domain.pddl simple-grid2.pddl"
-    "grid-domain.pddl simple-grid3.pddl"
-    "logistics-domain.pddl logistics-a.pddl"
-    "logistics-domain.pddl logistics-b.pddl"
-    "logistics-domain.pddl logistics-c.pddl"
-    "logistics-domain.pddl logistics-d.pddl"
-    "rocket-domain.pddl rocket-ext-a.pddl"
-    "rocket-domain.pddl rocket-ext-b.pddl"
-    "simple-blocks-domain.pddl bw-large-a.pddl"
-    "simple-blocks-domain.pddl bw-large-b.pddl"
-    "simple-blocks-domain.pddl bw-large-d.pddl"
-    "monkey-domain.pddl monkey-test1.pddl"
-    "bulldozer-domain.pddl get-back-jack.pddl"
+# Usage: ./run_benchmarks.sh <path-to-landmark-extractor>
+
+landmark_extraction_path=$1
+
+# List your problem-set folders here (paths relative to where you run this script)
+folders=(
+
 )
 
 write_csv() {
@@ -29,7 +15,7 @@ write_csv() {
     local -n data=$3
 
     {
-        IFS=',' 
+        IFS=','
         echo "Problem,${flags_order[*]}"
         unset IFS
         for problem in "${problems[@]}"; do
@@ -44,38 +30,39 @@ write_csv() {
     } > "$filename"
 }
 
+append_csv_row() {
+    local filename="$1"
+    local problem="$2"
+    local plan="$3"
+    local -n data=$4
 
+    local line="$problem"
+    for f in "${flaw_order[@]}"; do
+        key="${f}|${plan}"
+        value="${data[$key]}"
+        line="$line,$value"
+    done
 
-extract_plans_generated() {
-    grep -m 1 "^Plans generated: [0-9]\+" "$1" | awk '{print $3}'
+    echo "$line" >> "$filename"
 }
 
-extract_plans_visited() {
-    grep -m 1 "^Plans visited: [0-9]\+" "$1" | awk '{print $3}'
-}
+extract_plans_generated() { grep -m1 "^Plans generated: [0-9]\+" "$1" | awk '{print $3}'; }
+extract_plans_visited()  { grep -m1 "^Plans visited: [0-9]\+" "$1" | awk '{print $3}'; }
+extract_dead_ends()      { grep -m1 "^Dead ends encountered: [0-9]\+" "$1" | awk '{print $4}'; }
+extract_plan_length()    { grep -m1 "^Makespan: [0-9]\+" "$1" | awk '{print $2}'; }
 
-extract_dead_ends() {
-    grep -m 1 "^Dead ends encountered: [0-9]\+" "$1" | awk '{print $4}'
-}
-
-extract_plan_length() {
-    grep -m 1 "^Makespan: [0-9]\+" "$1" | awk '{print $2}'
-}
-
-# h='-h ADDR/ADDR_WORK/BUC/LIFO'
+# Heuristic and flaw-ordering flags
 h='-h UCPOP'
-# f='-f {n,s}LR/{l}MW_add -l 12000 -f {n,s}LR/{u}MW_add/{l}MW_add -l 100000 -f {n,s,l}LR -l 240000 -f {n,s,u}LR/{l}LR -l unlimited'
-f='-f {n,s}LIFO/{o}LIFO'
-f_f='-f {n,s}LIFO/{m}LIFO/{o}LIFO'
-f_l='-f {n,s}LIFO/{x}LIFO/{o}LIFO'
-f_ff='-f {n,s}LIFO/{m}LMO/{o}LIFO'
-f_fl='-f {n,s}LIFO/{m}RLMO/{o}LIFO'
-f_lf='-f {n,s}LIFO/{x}LIFO/{o}LMO'
-f_ll='-f {n,s}LIFO/{x}LIFO/{o}RLMO'
+f='{n,s}LIFO/{o}LIFO'
+f_f='{n,s}LIFO/{m}LIFO/{o}LIFO'
+f_l='{n,s}LIFO/{x}LIFO/{o}LIFO'
+f_ff='{n,s}LIFO/{m}LMO/{o}LIFO'
+f_fl='{n,s}LIFO/{m}RLMO/{o}LIFO'
+f_lf='{n,s}LIFO/{x}LIFO/{o}LMO'
+f_ll='{n,s}LIFO/{x}LIFO/{o}RLMO'
 
-declare -A flags=(
-    [default]="-y $f -h UCPOP"
-    [neutral]="$f -y"
+declare -A flaw_flags=(
+    [neutral]="$f"
     [fLIFO]="$f_f"
     [lLIFO]="$f_l"
     [ff]="$f_ff"
@@ -83,100 +70,99 @@ declare -A flags=(
     [lf]="$f_lf"
     [ll]="$f_ll"
 )
+flaw_order=(neutral fLIFO lLIFO ff fl lf ll)
 
-flags_order=("default" "neutral" "fLIFO" "lLIFO" "ff" "fl" "lf" "ll")
+declare -A plan_flags=(
+    [UCPOP]="UCPOP"
+    [UCPOPLM]="UCPOPLM"
+)
+plan_order=(UCPOP UCPOPLM)
 
-landmark_extraction_path=$1
-
-declare -A results_plans_generated
-declare -A results_plans_visited
-declare -A results_dead_ends
-declare -A results_plan_length
-
+# Prepare results directories & data structures
+declare -A results_plans_generated results_plans_visited results_dead_ends results_plan_length
 problems=()
 
 tmp1=$(mktemp)
 tmp2=$(mktemp)
 trap 'rm -f "$tmp1" "$tmp2"' EXIT
 
-for pair in "${file_pairs[@]}"; do
-    set -- $pair
-    domain=$1
-    problem=$2
+for plan in "${plan_order[@]}"; do
+    rm -rf "results/flaw_orders/$plan"
+    mkdir -p "results/flaw_orders/$plan"
+    # initialize CSVs with headers
+    write_csv "results/flaw_orders/$plan/plans_generated.csv" "Plans Generated" results_plans_generated
+    write_csv "results/flaw_orders/$plan/plans_visited.csv"  "Plans Visited"   results_plans_visited
+    write_csv "results/flaw_orders/$plan/dead_ends.csv"      "Dead Ends"       results_dead_ends
+    write_csv "results/flaw_orders/$plan/plan_length.csv"    "Plan Length"     results_plan_length
+done
 
-    problems+=("$problem")
-    echo "Running benchmark for problem '$problem' in domain '$domain'..."
 
-    python3 $landmark_extraction_path --alias seq-sat-lama-2011 examples/$domain examples/$problem > $tmp1
-    cat $tmp1 > output_landmarks.txt 2>&1
+for folder in "${folders[@]}"; do
+    domain="$folder/domain.pddl"
+    for probpath in "$folder"/*.pddl; do
+        [[ "$probpath" == "$domain" ]] && continue
+        problem=$(basename "$probpath")
+        problems+=("$problem")
 
-    for version in "${flags_order[@]}"; do
-      flag=${flags[$version]}
-      cmd="./vhpop -g -v1 $h $flag -m $tmp1 examples/$domain examples/$problem"
-      
-      timeout 5s $cmd > "$tmp2" 2>&1
-      status=$?
+        echo "Benchmarking problem '$problem' in domain '$domain'…"
 
-      cat $tmp2 > output_"$version".txt 2>&1
-      
-      if [ $status -eq 124 ]; then
-          pgen="x"
-          pvis="x"
-          dead="x"
-          plen="x"
-      else
-          pgen=$(extract_plans_generated "$tmp2")
-          pvis=$(extract_plans_visited "$tmp2")
-          dead=$(extract_dead_ends "$tmp2")
-          plen=$(extract_plan_length "$tmp2")
-      fi
-      
-      key="${problem}|${version}"
-      results_plans_generated["$key"]="$pgen"
-      results_plans_visited["$key"]="$pvis"
-      results_dead_ends["$key"]="$dead"
-      results_plan_length["$key"]="$plen"
-      
+
+        python3 "$landmark_extraction_path" --alias seq-sat-lama-2011 "$domain" "$probpath" > "$tmp1" 2>&1
+
+
+        for plan in "${plan_order[@]}"; do
+            p_flag=${plan_flags[$plan]}
+
+            for flaw in "${flaw_order[@]}"; do
+                f_flag=${flaw_flags[$flaw]}
+
+                cmd=(./vhpop -g -v1 -f "$f_flag" -h "$p_flag" -y -m "$tmp1" "$domain" "$probpath")
+                ( ulimit -t 300; "${cmd[@]}" > "$tmp2" 2>&1 )
+                status=$?
+
+                if [ $status -eq 152 ]; then
+                    pgen=pvis=dead=plen="x"
+                else
+                    pgen=$(extract_plans_generated "$tmp2")
+                    pvis=$(extract_plans_visited  "$tmp2")
+                    dead=$(extract_dead_ends      "$tmp2")
+                    plen=$(extract_plan_length    "$tmp2")
+                fi
+
+                key="${flaw}|${plan}"
+                results_plans_generated["$key"]=$pgen
+                results_plans_visited["$key"]=$pvis
+                results_dead_ends["$key"]=$dead
+                results_plan_length["$key"]=$plen
+            done
+
+
+            append_csv_row "results/flaw_orders/$plan/plans_generated.csv" "$problem" "$plan" results_plans_generated
+            append_csv_row "results/flaw_orders/$plan/plans_visited.csv"  "$problem" "$plan" results_plans_visited
+            append_csv_row "results/flaw_orders/$plan/dead_ends.csv"      "$problem" "$plan" results_dead_ends
+            append_csv_row "results/flaw_orders/$plan/plan_length.csv"    "$problem" "$plan" results_plan_length
+        done
     done
 done
 
 
 print_table() {
-    local title="$1"
-    local -n res_array=$2
-    echo ""
-    echo "                      $title                         "
-
-    printf "| %-19s " "Problem"
-    for heuristic in "${flags_order[@]}"; do
-        printf "| %-9s " "$heuristic"
-    done
+    local title="$1"; local -n res=$2
+    printf "\n===== %s =====\n" "$title"
+    printf "| %-20s " "Problem"
+    for h in "${flags_order[@]}"; do printf "| %-8s " "$h"; done
     echo "|"
-
-    printf "|---------------------"
-    for heuristic in "${flags_order[@]}"; do
-      printf "|-----------"
-    done
-    echo "|"
-
-    for problem in "${problems[@]}"; do
-        printf "| %-19s " "$problem"
-        for heuristic in "${flags_order[@]}"; do
-            key="${problem}|${heuristic}"
-            value="${res_array[$key]}"
-            printf "| %-9s " "$value"
+    printf "|%s|\n" "$(printf ' %.0s-' {1..(22 + 11*${#flags_order[@]})})"
+    for prob in "${problems[@]}"; do
+        printf "| %-20s " "$prob"
+        for h in "${flags_order[@]}"; do
+            printf "| %-8s " "${res[$prob|$h]}"
         done
         echo "|"
     done
 }
 
-
-print_table "Plans Generated" results_plans_generated
-print_table "Plans Visited"   results_plans_visited
-print_table "Dead Ends"       results_dead_ends
-print_table "Plan Length"     results_plan_length
-
-write_csv "results/flaw_orders/plans_generated.csv" "Plans Generated" results_plans_generated
-write_csv "results/flaw_orders/plans_visited.csv" "Plans Visited" results_plans_visited
-write_csv "results/flaw_orders/dead_ends.csv" "Dead Ends" results_dead_ends
-write_csv "results/flaw_orders/plan_length.csv" "Plan Length" results_plan_length
+# print_table "Plans Generated" results_plans_generated
+# print_table "Plans Visited"  results_plans_visited
+# print_table "Dead Ends"      results_dead_ends
+# print_table "Plan Length"    results_plan_length
