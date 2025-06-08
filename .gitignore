@@ -33,7 +33,8 @@ ltoptions.m4
 ltversion.m4
 
 # Generated Makefile.
-Makefile
+!Makefile
+!gtest/Makefile
 compile_commands.json
 !gtest/make/Makefile
 !gtest/scripts/test/Makefile

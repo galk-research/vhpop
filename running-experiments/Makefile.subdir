@@ -1,0 +1,51 @@
+EXP = $(wildcard problem*.pddl)
+DOM = $(wildcard dom*.pddl)
+EXP_NAME = ${EXP:.pddl=}
+
+DIRNAME = $(notdir $(CURDIR))
+
+ifndef TIMEOUT
+		$(error "TIMEOUT variable is not set in main Makefile")
+endif
+
+
+ENHSP="vhpop"
+
+en20planners := ucpop ucpoplm
+ENHSP_TGTS = $(foreach planner,$(en20planners),$(foreach exp,$(EXP),$(exp:.pddl=_$(planner).vhpop-log)))
+
+ERRLOG = "err"
+TIMELOG = "time"
+
+TGTS = $(ENHSP_TGTS)
+
+all: $(TGTS)
+	echo $(EXP) 
+	echo ${DOM}
+	echo ${EXP_NAME}
+	echo $(TGTS)
+	echo ${en20planners}
+
+clean:
+	-rm -f $(TGTS) *.$(ERRLOG) *.$(TIMELOG) 00FOLDER.txt
+
+
+zip: archive
+
+archive: all 
+	@echo "Experiment folder " $(PWD) > 00FOLDER.txt
+	zip -urop9 ../$(DIRNAME).zip  *.pddl $(TGTS)  *.$(ERRLOG) *.$(TIMELOG) 00FOLDER.txt
+
+#define planner_rule
+#%_$(1).enhsp-log: %.pddl $(DOM)
+#	timeout 10 /usr/bin/time -p -o $$@.time java -Xmx16g -jar /home/lee-or/Downloads/ENHSP-Public-enhsp-20/enhsp.jar -o $(DOM) -f $$< -planner $(1) -pt > $$@ 2>$$@.err > $$@.time 2>&1
+#endef
+
+define planner_rule
+%_$(1).vhpop-log: %.pddl $(DOM)
+	ulimit -t $(TIMEOUT) ; /usr/bin/time -p -o $$@.$(TIMELOG) $(ENHSP) -o $(DOM) -f $$< -planner $(1) -pt > $$@ 2>$$@.$(ERRLOG) || true
+		bzip2 $$@ $$@.$(ERRLOG) $$@.$(TIMELOG)
+endef
+
+$(foreach planner,$(en20planners),$(eval $(call planner_rule,$(planner))))
+
