@@ -1,4 +1,4 @@
-TIMEOUT=600
+TIMEOUT=6
 
 
 export # This makes all variables defined here global for sub-makes
