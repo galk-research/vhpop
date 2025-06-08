@@ -6,7 +6,6 @@ landmark_extraction_path=$1
 
 # List your problem-set folders here (paths relative to where you run this script)
 folders=(
-
 )
 
 write_csv() {
@@ -70,6 +69,7 @@ declare -A flaw_flags=(
     [lf]="$f_lf"
     [ll]="$f_ll"
 )
+# flaw_order=(neutral fLIFO lLIFO ff fl lf ll)
 flaw_order=(neutral fLIFO lLIFO ff fl lf ll)
 
 declare -A plan_flags=(
@@ -83,8 +83,7 @@ declare -A results_plans_generated results_plans_visited results_dead_ends resul
 problems=()
 
 tmp1=$(mktemp)
-tmp2=$(mktemp)
-trap 'rm -f "$tmp1" "$tmp2"' EXIT
+trap 'rm -f "$tmp1"' EXIT
 
 for plan in "${plan_order[@]}"; do
     rm -rf "results/flaw_orders/$plan"
@@ -99,13 +98,16 @@ done
 
 for folder in "${folders[@]}"; do
     domain="$folder/domain.pddl"
+    folder_name=$(basename "$folder")
+    mkdir -p "results/$folder_name"
     for probpath in "$folder"/*.pddl; do
         [[ "$probpath" == "$domain" ]] && continue
         problem=$(basename "$probpath")
+        baseproblem="${problem%.pddl}"
+        outname="${folder_name}-${baseproblem}"
         problems+=("$problem")
 
         echo "Benchmarking problem '$problem' in domain '$domain'…"
-
 
         python3 "$landmark_extraction_path" --alias seq-sat-lama-2011 "$domain" "$probpath" > "$tmp1" 2>&1
 
@@ -116,31 +118,39 @@ for folder in "${folders[@]}"; do
             for flaw in "${flaw_order[@]}"; do
                 f_flag=${flaw_flags[$flaw]}
 
-                cmd=(./vhpop -g -v1 -f "$f_flag" -h "$p_flag" -y -m "$tmp1" "$domain" "$probpath")
-                ( ulimit -t 300; "${cmd[@]}" > "$tmp2" 2>&1 )
-                status=$?
+                filename="results/$flaw/$plan/$outname"
 
-                if [ $status -eq 152 ]; then
-                    pgen=pvis=dead=plen="x"
+                cmd=(./vhpop -g -v5 -f "$f_flag" -h "$p_flag" -y -m "$tmp1" "$domain" "$probpath")
+                # ( ulimit -t 300; "${cmd[@]}" > "results/$folder_name/$problem/${plan}_${flaw}" 2>&1 )
+                ( ulimit -t 300; "${cmd[@]}" > "results/$flaw/$plan/$outname" 2>&1 )
+                if [ -f "$filename" ]; then
+                    zip -9 "${filename}.zip" "$filename" && rm "$filename"
                 else
-                    pgen=$(extract_plans_generated "$tmp2")
-                    pvis=$(extract_plans_visited  "$tmp2")
-                    dead=$(extract_dead_ends      "$tmp2")
-                    plen=$(extract_plan_length    "$tmp2")
+                    echo "Error: file '$filename' was not created."
                 fi
+                # status=$?
 
-                key="${flaw}|${plan}"
-                results_plans_generated["$key"]=$pgen
-                results_plans_visited["$key"]=$pvis
-                results_dead_ends["$key"]=$dead
-                results_plan_length["$key"]=$plen
+                # if [ $status -eq 152 ]; then
+                #     pgen=pvis=dead=plen="x"
+                # else
+                #     pgen=$(extract_plans_generated "$tmp2")
+                #     pvis=$(extract_plans_visited  "$tmp2")
+                #     dead=$(extract_dead_ends      "$tmp2")
+                #     plen=$(extract_plan_length    "$tmp2")
+                # fi
+
+                # key="${flaw}|${plan}"
+                # results_plans_generated["$key"]=$pgen
+                # results_plans_visited["$key"]=$pvis
+                # results_dead_ends["$key"]=$dead
+                # results_plan_length["$key"]=$plen
             done
 
 
-            append_csv_row "results/flaw_orders/$plan/plans_generated.csv" "$problem" "$plan" results_plans_generated
-            append_csv_row "results/flaw_orders/$plan/plans_visited.csv"  "$problem" "$plan" results_plans_visited
-            append_csv_row "results/flaw_orders/$plan/dead_ends.csv"      "$problem" "$plan" results_dead_ends
-            append_csv_row "results/flaw_orders/$plan/plan_length.csv"    "$problem" "$plan" results_plan_length
+            # append_csv_row "results/flaw_orders/$plan/plans_generated.csv" "$problem" "$plan" results_plans_generated
+            # append_csv_row "results/flaw_orders/$plan/plans_visited.csv"  "$problem" "$plan" results_plans_visited
+            # append_csv_row "results/flaw_orders/$plan/dead_ends.csv"      "$problem" "$plan" results_dead_ends
+            # append_csv_row "results/flaw_orders/$plan/plan_length.csv"    "$problem" "$plan" results_plan_length
         done
     done
 done

@@ -79,7 +79,7 @@ static struct option long_options[] = {
   { "connect-all-preconds", no_argument, NULL, 'P' },
   { 0, 0, 0, 0 }
 };
-static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:ePE";
+static const char OPTION_STRING[] = "a:d::f:gHh:l:rS:s:T:t:Vv::W::w:m:ePEy";
 
 
 /* Displays help. */
@@ -330,6 +330,9 @@ int main(int argc, char* argv[]) {
       break;
     case 'P':
       params.auto_connect_preconds = true;
+      break;
+    case 'y':
+      params.landmarks_h = true;
       break;
     case ':':
     default:
