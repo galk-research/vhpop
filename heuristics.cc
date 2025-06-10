@@ -1019,6 +1019,83 @@ float PlanningGraph::ff_value(const Plan &plan, bool reuse) const {
   return usedActions.size() - (reuse ? 0.0f : 1.0f);
 }
 
+float PlanningGraph::ff_value(const Plan& plan, const OpenCondition& oc,
+                              bool reuse) const {
+  std::unordered_set<const GroundAction*> usedActions;
+  std::unordered_map<const GroundAction*, std::vector<int>> actionToStepIds;
+
+  if (reuse) {
+    for (const Chain<Step>* step = plan.steps(); step != nullptr;
+         step = step->tail) {
+      const Step& s = step->head;
+      const GroundAction* action =
+          dynamic_cast<const GroundAction*>(&s.action());
+      if (action != nullptr) {
+        actionToStepIds[action].push_back(s.id());
+      }
+    }
+  }
+
+  const Formula& formula = oc.condition();
+  vector<const Formula*> formulas(1, &formula);
+  while (!formulas.empty()) {
+    const Formula* f = formulas.back();
+    formulas.pop_back();
+    if (typeid(*f) == typeid(Conjunction)) {
+      const Conjunction& c = dynamic_cast<const Conjunction&>(*f);
+      for (FormulaList::const_iterator fi = c.conjuncts().begin();
+           fi != c.conjuncts().end(); fi++) {
+        formulas.push_back(*fi);
+      }
+    } else if (typeid(*f) == typeid(Disjunction)) {
+      const Disjunction& d = dynamic_cast<const Disjunction&>(*f);
+      const Formula* cheapest_disjunct = nullptr;
+      float cheapest_cost = std::numeric_limits<float>::infinity();
+      for (FormulaList::const_iterator fi = d.disjuncts().begin();
+           fi != d.disjuncts().end(); fi++) {
+        HeuristicValue h;
+        HeuristicValue hs;
+        float cost = (*fi)->precond_value(*this);
+        if (cost < cheapest_cost) {
+          cheapest_cost = cost;
+          cheapest_disjunct = *fi;
+        }
+      }
+      formulas.push_back(cheapest_disjunct);
+    } else if (typeid(*f) == typeid(Atom) || typeid(*f) == typeid(Negation)) {
+      const Literal& l = dynamic_cast<const Literal&>(*f);
+      const GroundAction* best_action = dynamic_cast<const GroundAction*>(
+          literal_best_achievers_.find(&l)->second);
+      std::unordered_set<const GroundAction*>::const_iterator ai =
+          usedActions.find(best_action);
+      if (ai != usedActions.end()) {
+        continue;
+      }
+      auto it = actionToStepIds.find(best_action);
+      if (it == actionToStepIds.end()) {
+        usedActions.insert(best_action);
+        formulas.push_back(&best_action->condition());
+        continue;
+      }
+      bool insert = true;
+      vector<int> step_ids = it->second;
+      for (unsigned int i = 0; i < step_ids.size(); i++) {
+        if (plan.orderings().possibly_before(step_ids[i], StepTime::AT_START,
+                                             oc.step_id(),
+                                             StepTime::AT_START)) {
+          insert = false;
+          break;
+        }
+      }
+      if (insert) {
+        usedActions.insert(best_action);
+        formulas.push_back(&best_action->condition());
+      }
+    }
+  }
+  return usedActions.size() - (reuse ? 0.0f : 1.0f);
+}
+
 /* Returns the heuristic value of a ground atom. */
 HeuristicValue PlanningGraph::heuristic_value(const Atom& atom, size_t step_id,
                                               const Bindings* bindings) const {
@@ -2459,12 +2536,59 @@ const Flaw& FlawSelectionOrder::select(const Plan& plan,
     const OpenCondition& open_cond = occ->head;
       std::cerr << "\t";
       open_cond.print(std::cerr, Bindings::EMPTY);
+      
+      if (verbosity >= 5) {
+        HeuristicValue h, hs;
+        formula_value(h, hs, open_cond.condition(), open_cond.step_id(), plan, *pg, false);        
+  
+        HeuristicValue hr, hsr;
+        formula_value(hr, hsr, open_cond.condition(), open_cond.step_id(), plan, *pg, true);
+        
+        float ff, ffr;
+  
+        ff = pg->ff_value(plan, open_cond, false);
+        ffr = pg->ff_value(plan, open_cond, true);
+  
+        int refinements = -1, addable = -1, reusable = -1;
+  
+        plan.open_cond_refinements(refinements, addable, reusable, open_cond,
+                                   std::numeric_limits<int>::max());
+        std::cerr << " LL: ";
+        if (open_cond.is_landmark()) {
+          std::cerr << open_cond.landmark_layer();
+        } else {
+          std::cerr << "X";
+        }
+
+        std::cerr << " ADD: ";
+        std::cerr << h.add_cost();
+        std::cerr << " ADD_WORK: ";
+        std::cerr << h.add_work();
+        // std::cerr << " MAKESPAN: ";
+        // std::cerr << h.makespan();
+        std::cerr << " ADDR: ";
+        std::cerr << hr.add_cost();
+        std::cerr << " ADDR_WORK: ";
+        std::cerr << hr.add_work();
+        std::cerr << " MAX: ";
+        std::cerr << h.max_cost();
+        std::cerr << " MAXR: ";
+        std::cerr << hr.max_cost();
+        std::cerr << " FF: ";
+        std::cerr << ff;
+        std::cerr << " FFR: ";
+        std::cerr << ffr;
+        std::cerr << " New: ";
+        std::cerr << refinements;
+        std::cerr << " Reuse: ";
+        std::cerr << reusable;
+      }
       std::cerr << std::endl;
     }
     for (const Chain<MutexThreat>* mtc = plan.mutex_threats(); mtc != NULL; mtc = mtc->tail) {
-      const MutexThreat& open_cond = mtc->head;
+      const MutexThreat& mutex_threat = mtc->head;
         std::cerr << "\t";
-        open_cond.print(std::cerr, Bindings::EMPTY);
+        mutex_threat.print(std::cerr, Bindings::EMPTY);
         std::cerr << std::endl;
       }
   }

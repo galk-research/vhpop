@@ -161,6 +161,9 @@ struct PlanningGraph {
 
   float ff_value(const Plan& plan, bool reuse = false) const;
 
+  float ff_value(const Plan& plan, const OpenCondition& oc, bool reuse = false) const;
+
+
   /* Returns the heurisitc value of an atom. */
   HeuristicValue heuristic_value(const Atom& atom, size_t step_id,
                                      const Bindings* bindings = NULL) const;

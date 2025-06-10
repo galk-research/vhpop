@@ -1,5 +1,5 @@
-TIMEOUT=6
-
+TIMEOUT = 2
+LANDMARK_SCRIPT = /home/neria/final-project/MODDED_FD/fast-downward.py
 
 export # This makes all variables defined here global for sub-makes
 
@@ -10,7 +10,7 @@ $(TOPTARGETS): $(SUBDIRS)
 
 $(SUBDIRS):
 	@echo "Now working on problems in " $@
-	cd $@ && make -f ../Makefile.subdir $(MAKECMDGOALS)
+	@cd $@ && $(MAKE) -f ../Makefile.subdir $(MAKECMDGOALS)
 	# $(MAKE) -C $@ $(MAKECMDGOALS)
 
 .PHONY: $(TOPTARGETS) $(SUBDIRS)
