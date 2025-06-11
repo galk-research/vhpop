@@ -1,5 +1,6 @@
 TIMEOUT = 2
 LANDMARK_SCRIPT = /home/neria/final-project/MODDED_FD/fast-downward.py
+DATADIR = /data/neria
 
 export # This makes all variables defined here global for sub-makes
 

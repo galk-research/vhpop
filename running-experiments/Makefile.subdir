@@ -24,6 +24,8 @@ TIMELOG      := time
 
 .PHONY: all clean
 all: $(foreach p,$(PLANNERS),$(foreach h,$(HEURINGS),$(PROBS:%.pddl=%_$(p)_$(h).$(VHPOPLOG))))
+	touch ../DONE
+
 clean:
 	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.lm
 
@@ -36,10 +38,11 @@ define VHPOP_RULE
 %_$(1)_$(2).$(VHPOPLOG): %.pddl $(DOM) %_lm
 	@echo "Running $(1) with $(2) on $$<"
 	- (ulimit -t $(TIMEOUT); \
+	  /usr/bin/time -p -o $$@.$(TIMELOG) \	
 	  ../vhpop -v5 -g -y -m $$*_lm \
-	  -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1)
-	@/usr/bin/time -p -o $$@.$(TIMELOG) true
-	@bzip2 $$@ $$@.$(TIMELOG)
+	  -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1)a || true
+	  # @/usr/bin/time -p -o $$@.$(TIMELOG) true  # TODO: This is wrong, I think
+	@bzip2 $$@ $$@.$(TIMELOG) ; mv *.bz2 $(DATADIR)/XXX ; exit -1 # TODO FIX THIS
 endef
 
 
