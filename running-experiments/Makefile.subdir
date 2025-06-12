@@ -3,7 +3,6 @@ DOM      := $(wildcard domain*.pddl)
 PROBS    := $(filter-out $(DOM),$(wildcard *.pddl))
 
 # Planner configurations
-FLAGS    := -v5 -g -y -m $(LANDMARK_OUT)
 PLANNERS   := UCPOP UCPOPLM
 HEURINGS   := neutral fLIFO lLIFO ff fl lf ll
 
@@ -17,7 +16,6 @@ lf      := {n,s}LIFO/{x}LIFO/{o}LMO
 ll      := {n,s}LIFO/{x}LIFO/{o}RLMO
 
 # Derived names
-LANDMARK_OUT := $(@:.vhpop-log=).lm
 VHPOPLOG     := vhpop-log
 ERRLOG       := err
 TIMELOG      := time
@@ -27,7 +25,7 @@ all: $(foreach p,$(PLANNERS),$(foreach h,$(HEURINGS),$(PROBS:%.pddl=%_$(p)_$(h).
 	touch ../DONE
 
 clean:
-	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.lm *.sas
+	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.sas
 
 # Extract landmarks per problem
 %_lm: %.pddl $(DOM)
@@ -44,10 +42,12 @@ define VHPOP_RULE
 	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1 \
 	  )
 	  
-	@bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG)
-	@mv $$@.bz2 $(DATADIR)
-	@mv $$@.$(TIMELOG).bz2 $(DATADIR)
-	@mv $$@_bzip2.$(ERRLOG) $(DATADIR)
+	@{ \
+		ts=$$(date +%s); \
+		mkdir -p $(DATADIR)/$$ts; \
+		bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG); \
+		mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$ts; \
+	}
 endef
 
 

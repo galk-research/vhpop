@@ -8,6 +8,7 @@ import tempfile
 import zipfile
 import sys
 from pathlib import Path
+import bz2
 
 # --- Regular Expressions ---
 # Flaw Selection Regexes
@@ -227,6 +228,45 @@ def process_zip(zippath, csv_writer):
                 except Exception as e:
                     print(f"[!] Error processing {full_path.name}: {e}", file=sys.stderr)
 
+def process_bz2(bz2path, csv_writer):
+    """
+    Decompresses a single .bz2‐compressed log file, parses it,
+    and writes the results to the CSV writer.
+    """
+    base = Path(bz2path).stem  # e.g. "prob01_UCPOP_neutral.vhpop-log"
+    print(f"Processing bz2 log {base}...")
+
+    # Create a temporary directory just to hold the one decompressed file:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        out_path = Path(tmpdir) / base
+
+        # Decompress into tmpdir/base
+        try:
+            with bz2.open(bz2path, 'rb') as src, open(out_path, 'wb') as dst:
+                dst.write(src.read())
+        except OSError as e:
+            print(f"[!] Skipping {base}: cannot decompress ({e})", file=sys.stderr)
+            return
+
+        # Now parse that one file
+        try:
+            results = parse_trace_file(out_path)
+            results["problem"] = base
+
+            # Format None values for CSV output
+            results["normalized_add_work"] = (
+                "" if results["normalized_add_work"] is None
+                else f"{results['normalized_add_work']:.4f}"
+            )
+            results["plans_until_landmark"] = (
+                "" if results["plans_until_landmark"] is None
+                else results["plans_until_landmark"]
+            )
+
+            csv_writer.writerow(results)
+        except Exception as e:
+            print(f"[!] Error processing {base}: {e}", file=sys.stderr)
+
 
 def main():
     """
@@ -262,8 +302,8 @@ def main():
 
             # Iterate through zip files in the directory
             for item in input_dir.iterdir():
-                if item.is_file() and item.name.lower().endswith(".zip"):
-                    process_zip(item, writer)
+                if item.is_file() and item.name.lower().endswith(".bz2"):
+                    process_bz2(item, writer)
 
         print(f"\nDone! Summary written to {output_csv_path}")
 

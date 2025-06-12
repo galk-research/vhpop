@@ -2444,14 +2444,16 @@ std::ostream& operator<<(std::ostream& os, const Plan& p) {
     }
   }
 #endif
-  if (verbosity < 2) {
-    std::cerr << "Makespan: " << makespan << std::endl;
+  if (verbosity < 2 || verbosity == 10) {
+    if (verbosity != 10) {
+      std::cerr << "Makespan: " << makespan << std::endl;
+    }
     bool first = true;
     for (std::vector<const Step*>::const_iterator si = ordered_steps.begin();
          si != ordered_steps.end(); si++) {
       const Step& s = **si;
       if (s.action().name().substr(0, 1) != "<") {
-        if (verbosity > 0 || !first) {
+        if ((verbosity > 0 && verbosity != 10) || !first) {
           os << std::endl;
         }
         first = false;

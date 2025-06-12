@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    if (verbosity > 1) {
+    if (verbosity > 1 && verbosity != 10) {
       /*
        * Display domains and problems.
        */

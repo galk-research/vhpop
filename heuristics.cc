@@ -596,7 +596,7 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params,
   GroundActionSet applicable_actions;
   GroundActionSet useful_actions;
   do {
-    if (verbosity > 3) {
+    if (verbosity > 3 && verbosity != 10) {
       /*
        * Print literal values at this level.
        */
@@ -680,7 +680,7 @@ PlanningGraph::PlanningGraph(const Problem& problem, const Parameters& params,
               if (useful_actions.find(&action) == useful_actions.end()) {
                 useful_actions.insert(&action);
               }
-              if (verbosity > 4) {
+              if (verbosity > 4 && verbosity != 10) {
                 std::cerr << "  ";
                 action.print(std::cerr, 0, Bindings::EMPTY);
                 std::cerr << " achieves ";
