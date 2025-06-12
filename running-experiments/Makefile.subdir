@@ -27,22 +27,27 @@ all: $(foreach p,$(PLANNERS),$(foreach h,$(HEURINGS),$(PROBS:%.pddl=%_$(p)_$(h).
 	touch ../DONE
 
 clean:
-	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.lm
+	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.lm *.sas
 
 # Extract landmarks per problem
 %_lm: %.pddl $(DOM)
 	@echo "Extracting landmarks for $<"
-	@python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 $(DOM) $< > $@ 2>&1
+	@python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 --sas-file $@.sas $(DOM) $< > $@ 2>&1
 
 define VHPOP_RULE
 %_$(1)_$(2).$(VHPOPLOG): %.pddl $(DOM) %_lm
 	@echo "Running $(1) with $(2) on $$<"
-	- (ulimit -t $(TIMEOUT); \
-	  /usr/bin/time -p -o $$@.$(TIMELOG) \	
-	  ../vhpop -v5 -g -y -m $$*_lm \
-	  -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1)a || true
-	  # @/usr/bin/time -p -o $$@.$(TIMELOG) true  # TODO: This is wrong, I think
-	@bzip2 $$@ $$@.$(TIMELOG) ; mv *.bz2 $(DATADIR)/XXX ; exit -1 # TODO FIX THIS
+	@- ( \
+	    ulimit -t $(TIMEOUT); \
+	    /usr/bin/time -p -o $$@.$(TIMELOG) \
+	      ../vhpop -v5 -g -y -m $$*_lm \
+	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1 \
+	  )
+	  
+	@bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG)
+	@mv $$@.bz2 $(DATADIR)
+	@mv $$@.$(TIMELOG).bz2 $(DATADIR)
+	@mv $$@_bzip2.$(ERRLOG) $(DATADIR)
 endef
 
 
