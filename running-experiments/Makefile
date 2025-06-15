@@ -1,6 +1,7 @@
 TIMEOUT = 600
 LANDMARK_SCRIPT = /home/neria/MODDED_FD/fast-downward.py
 DATADIR = /data/neria
+TMPDIR = /tmp/neria
 
 export # This makes all variables defined here global for sub-makes
 
@@ -14,7 +15,7 @@ $(TOPTARGETS): $(SUBDIRS)
 
 $(SUBDIRS):
 	@echo "Now working on problems in " $@
-	@cd $@ && $(MAKE) -f $(THIS_DIR)/Makefile.subdir $(MAKECMDGOALS)
+	@cd $@ && $(MAKE) -f $(THIS_DIR)/Makefile.subdir $(MAKECMDGOALS) 
 	# $(MAKE) -C $@ $(MAKECMDGOALS)
 
 .PHONY: $(TOPTARGETS) $(SUBDIRS)

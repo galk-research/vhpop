@@ -30,7 +30,7 @@ clean:
 # Extract landmarks per problem
 %_lm: %.pddl $(DOM)
 	@echo "Extracting landmarks for $<"
-	@python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 --sas-file $@.sas $(DOM) $< > $@ 2>&1
+	@python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 --sas-file $@.sas $(DOM) $< >$@ 2>$@.$(ERRLOG)
 
 define VHPOP_RULE
 %_$(1)_$(2).$(VHPOPLOG): %.pddl $(DOM) %_lm
@@ -39,7 +39,7 @@ define VHPOP_RULE
 	    ulimit -t $(TIMEOUT); \
 	    /usr/bin/time -p -o $$@.$(TIMELOG) \
 	      ../vhpop -v5 -g -y -m $$*_lm \
-	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1 \
+	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>$$@.$(ERRLOG) \
 	  )
 	  
 	@{ \
