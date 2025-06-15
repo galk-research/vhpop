@@ -2,6 +2,7 @@ TIMEOUT = 600
 LANDMARK_SCRIPT = /home/neria/MODDED_FD/fast-downward.py
 DATADIR = /data/neria
 TMPDIR = /tmp/neria
+VHPOP = $(PWD)/vhpop
 
 export # This makes all variables defined here global for sub-makes
 
@@ -22,6 +23,3 @@ $(SUBDIRS):
 
 
 # see also: https://stackoverflow.com/questions/9249757/recursive-make-in-subdirectories
-
-
-

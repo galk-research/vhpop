@@ -38,15 +38,15 @@ define VHPOP_RULE
 	@- ( \
 	    ulimit -t $(TIMEOUT); \
 	    /usr/bin/time -p -o $$@.$(TIMELOG) \
-	      ../vhpop -v5 -g -y -m $$*_lm \
-	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>$$@.$(ERRLOG) \
+	      $(VHPOP) -v10 -g -y -m $$*_lm \
+	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1 \
 	  )
 	  
 	@{ \
-		ts=$$(date +%s); \
-		mkdir -p $(DATADIR)/$$ts; \
+		ts=$$$$(date +%s); \
+		mkdir -p $(DATADIR)/$$$$ts; \
 		bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG); \
-		mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$ts; \
+		mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$$$ts; \
 	}
 endef
 
