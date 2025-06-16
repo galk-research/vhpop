@@ -22,7 +22,7 @@ TIMELOG      := time
 
 .PHONY: all clean
 all: $(foreach p,$(PLANNERS),$(foreach h,$(HEURINGS),$(PROBS:%.pddl=%_$(p)_$(h).$(VHPOPLOG))))
-	touch ../DONE
+	@touch ../DONE
 
 clean:
 	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.sas
@@ -43,10 +43,10 @@ define VHPOP_RULE
 	  )
 	  
 	@{ \
-		ts=$$$$(date +%s); \
-		mkdir -p $(DATADIR)/$$$$ts; \
-		bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG); \
-		mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$$$ts; \
+		folder_name="$$(@:.$(VHPOPLOG)=)_$$$$(date +%s)"; \
+		mkdir -p $(DATADIR)/$$$$folder_name; \
+		nice -n 10 bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG); \
+		mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$$$folder_name; \
 	}
 endef
 
