@@ -43,7 +43,7 @@ define VHPOP_RULE
 	  )
 	  
 	@{ \
-		folder_name="$$(@:.$(VHPOPLOG)=)_$$$$(date +%s)"; \
+		folder_name="$$$${PWD##*/}_$$(@:.$(VHPOPLOG)=)_$$$$(date +%s)"; \
 		mkdir -p $(DATADIR)/$$$$folder_name; \
 		nice -n 10 bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG); \
 		mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$$$folder_name; \
