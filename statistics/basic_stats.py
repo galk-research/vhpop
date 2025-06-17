@@ -5,11 +5,9 @@ import sys
 from pathlib import Path
 from multiprocessing import Pool
 import bz2
-import zipfile
-import io
 import re
 
-# --- Regular Expressions ---
+
 RE_START = re.compile(r'^Selecting a flaw from')
 RE_CANDIDATE = re.compile(r"#<([^>]+)> LL: (\S+) .*? ADD_WORK: (\d+)")
 RE_HANDLE = re.compile(r'^\s*handle #<(?P<id>[^>]+)>')
@@ -59,7 +57,7 @@ def parse_trace_stream(f):
 
     for raw in f:
         line = raw.rstrip("\n")
-        # --- Log Parsing ---
+
         m_gen = RE_GENERATED.match(line)
         if m_gen: 
             metrics["gen"] = int(m_gen.group(1))
@@ -82,13 +80,13 @@ def parse_trace_stream(f):
         if m_visitline:
             metrics["max_vis"] = max(metrics["max_vis"], int(m_visitline.group(1)))
 
-        # --- Flaw Selection Parsing ---
-        if RE_START.match(line):
-            # Process the end of the *previous* block if RE_HANDLE wasn't found
-            if in_block:
-                in_block = False # Reset without processing handle
 
-            # Start a new flaw-selection round
+        if RE_START.match(line):
+
+            if in_block:
+                in_block = False
+
+
             current_plans += 1
             in_block = True
             candidates_ll.clear()
@@ -96,30 +94,17 @@ def parse_trace_stream(f):
             continue
 
         if in_block:
-            # Collect candidate LL values
-            # m_ll = RE_CANDIDATE_LL.match(line)
-            # if m_ll and GOAL_ID not in m_ll.group('id'):
-            #     candidates_ll[m_ll.group('id')] = m_ll.group('ll')
-            #     continue
-
-            # # Collect candidate ADD_WORK values
-            # m_add = RE_CANDIDATE_ADD.match(line)
-            # if m_add:
-            #     candidates_add[m_add.group('id')] = int(m_add.group('add'))
-            #     continue
             try:
                 flaw_id, ll, add = parse_flaw(line)
                 if GOAL_ID not in flaw_id:  # Skip the goal ID
                     candidates_ll[flaw_id] = ll
                 candidates_add[flaw_id] = add
             except ValueError:
-                # Look for the actual selection (handle)
+
                 m_handle = RE_HANDLE.match(line)
                 if m_handle:
                     chosen_id = m_handle.group('id')
-                    in_block = False  # End of the current block
-
-                    # --- Calculate metrics for this round ---
+                    in_block = False
 
                     # 1. Plans Until Landmark
                     chosen_ll = candidates_ll.get(chosen_id)
@@ -129,7 +114,6 @@ def parse_trace_stream(f):
                     # 2. Flaws Reopened
                     is_landmark = chosen_ll and chosen_ll != 'X'
                     if chosen_id in open_flaws:    
-                        # Only count if it was a candidate in this round (had LL/ADD)
                         if chosen_id in candidates_add:
                             metrics["flaws_reopened"] += 1
                         if is_landmark:
@@ -144,13 +128,12 @@ def parse_trace_stream(f):
                         if all_adds:
                             min_add = min(all_adds)
                             max_add = max(all_adds)
-                            # Only count if add_work values differ
                             if max_add > min_add:
                                 metrics["add_work_rounds"] += 1
                                 score = (chosen_add_val - min_add) / (max_add - min_add)
                                 metrics["add_work_wins"] += score
 
-    # --- Final Calculations & Formatting ---
+
     finished = all(metrics[k] is not None for k in ["gen", "vis", "dead", "steps"])
     gen_val = metrics["gen"] if metrics["gen"] is not None else (metrics["max_id"] or "")
     vis_val = metrics["vis"] if metrics["vis"] is not None else (metrics["max_vis"] or "")
@@ -186,7 +169,6 @@ def worker(path):
     print(f"Processing {path}")
     results = []
     for f in path.iterdir():
-        print(str(f))
         if str(f).lower().endswith('vhpop-log.bz2'):
             results.extend(process_bz2(f))
             results[-1]['problem'] = Path(path).stem
@@ -219,6 +201,8 @@ def main():
         writer.writeheader()
         with Pool(processes=args.jobs) as pool:
             for row_list in pool.imap_unordered(worker, folders, chunksize=1):
+                if not row_list:
+                    continue
                 for row in row_list:
                     writer.writerow(row)
 
