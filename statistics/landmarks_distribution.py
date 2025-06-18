@@ -87,7 +87,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('data_directory')
     p.add_argument("-j", "--jobs", type=int,
-               help="Number of parallel jobs (default: all available cores)")
+               help="Number of parallel jobs")
     args = p.parse_args()
 
     indir = Path(args.data_directory)

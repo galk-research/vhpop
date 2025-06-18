@@ -95,7 +95,7 @@ def main():
     p.add_argument('data_directory')
     p.add_argument('input_csv',     help="the existing CSV with a 'problem' column")
     p.add_argument('output_csv',    help="where to write the merged CSV")
-    p.add_argument("-j", "--jobs",  type=int, help="parallel jobs (default: all cores)")
+    p.add_argument("-j", "--jobs",  type=int, help="parallel jobs")
     args = p.parse_args()
 
     indir   = Path(args.data_directory)
