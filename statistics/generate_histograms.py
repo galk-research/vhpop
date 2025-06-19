@@ -17,13 +17,7 @@ def create_histogram_from_csv(csv_path, output_png_path):
     try:
 
         df = pd.read_csv(csv_path)
-
-
-        
-
         plt.figure(figsize=(14, 7))
-
-
         plt.bar(df['value'], df['count'], color='skyblue', edgecolor='black')
 
 
@@ -32,8 +26,6 @@ def create_histogram_from_csv(csv_path, output_png_path):
         plt.ylabel('Frequency', fontsize=12)
         
 
-
-
         plt.xticks(df['value'])
         plt.xticks(rotation=45)
 
@@ -41,16 +33,12 @@ def create_histogram_from_csv(csv_path, output_png_path):
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
-
         plt.grid(axis='y', linestyle='--', alpha=0.7)
-
 
         plt.tight_layout()
 
-
         plt.savefig(output_png_path, dpi=300)
         
-
         plt.close()
 
         print(f"Histogram successfully saved to: {output_png_path}")

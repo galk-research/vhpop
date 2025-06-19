@@ -6,9 +6,10 @@ from pathlib import Path
 from multiprocessing import Pool
 import bz2
 import re
+import pandas as pd
 
 
-RE_CANDIDATE = re.compile(r"LL: (\S+)")
+RE_CANDIDATE = re.compile(r"^\s*#<OPEN \((.+)\) .+> LL: (\S+)")
 RE_HANDLE = re.compile(r'^\s*handle #<(?P<id>[^>]+)>')
 RE_VISITLINE = re.compile(r"^(\d+):.*CURRENT PLAN \(id (\d+)\) with rank \(\d+\)")
 RE_CHILD = re.compile(r"^.*CHILD \(id (\d+)\) with rank \(\d+\)")
@@ -47,12 +48,15 @@ def parse_trace_stream(f):
         if in_block:
             if match := RE_CANDIDATE.search(line):
                 num_flaws += 1
-                ll = match.group(1)
+                ll = match.group(2)
                 if ll and ll != 'X':
-                    current_value = num_flaws + depth
-                    if current_value not in positions:
-                        positions[current_value] = 0
-                    positions[current_value] += 1
+                    landmark = match.group(1)
+                    current_positions = num_flaws + depth
+                    if current_positions not in positions:
+                        positions[current_positions] = {}
+                    if landmark not in positions[current_positions]:
+                        positions[current_positions][landmark] = 0
+                    positions[current_positions][landmark] += 1
             
             elif RE_HANDLE.match(line):
                 in_block = False
@@ -61,7 +65,17 @@ def parse_trace_stream(f):
             child_id = int(match.group(1))
             depths[child_id] = depth + 1
 
-    return positions
+    records = []
+    for position, landmark_counts in positions.items():
+        for landmark_type, count in landmark_counts.items():
+            records.append({
+                'position': position,
+                'landmark_type': landmark_type,
+                'count': count
+            })
+    df = pd.DataFrame(records)
+    df.sort_values(by=['position', 'landmark_type']).reset_index(drop=True)
+    return df
 
 
 def process_bz2(path):
@@ -72,15 +86,11 @@ def process_bz2(path):
 
 def worker(path):
     print(f"Processing {path}")
-    results = []
     for f in path.iterdir():
         if str(f).lower().endswith('vhpop-log.bz2'):
-            positions = process_bz2(f)
-            with open(Path(path) / "landmarks_distribution.csv", "w", newline="") as fout:
-                writer = csv.writer(fout)
-                writer.writerow(["value", "count"])
-                for value, count in sorted(positions.items()):
-                    writer.writerow([value, count])
+            positions_df = process_bz2(f)
+            output_path = Path(path) / "landmarks_distribution.csv"
+            positions_df.to_csv(output_path, index=False)
 
 
 def main():
