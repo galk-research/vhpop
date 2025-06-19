@@ -6,8 +6,10 @@ import argparse
 from pathlib import Path
 from multiprocessing import Pool
 import sys
+import seaborn as sns
 
 histograms_folder = Path("histograms")
+
 
 def create_histogram_from_csv(csv_path, output_png_path):
     """
@@ -16,17 +18,28 @@ def create_histogram_from_csv(csv_path, output_png_path):
     """
     try:
 
-        df = pd.read_csv(csv_path)
-        plt.figure(figsize=(14, 7))
-        plt.bar(df['value'], df['count'], color='skyblue', edgecolor='black')
+        df_reloaded = pd.read_csv(csv_path)
 
+        plt.figure(figsize=(12, 7))
 
-        plt.title('Distribution of Landmark Counts', fontsize=16)
+        sns.histplot(
+            data=df_reloaded,
+            x='position',
+            hue='landmark_type',
+            weights='count',
+            multiple='stack',
+            discrete=True, 
+            # binwidth=1,
+            # shrink=0.8,
+            edgecolor='white'
+        )
+
+        plt.title('Distribution of Landmark positions', fontsize=16)
         plt.xlabel('Landmark Position', fontsize=12)
         plt.ylabel('Frequency', fontsize=12)
         
 
-        plt.xticks(df['value'])
+        plt.xticks(df_reloaded['position'].unique())
         plt.xticks(rotation=45)
 
 
