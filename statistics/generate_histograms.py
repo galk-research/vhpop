@@ -9,16 +9,31 @@ import sys
 import seaborn as sns
 
 histograms_folder = Path("histograms")
+max_bins = None
 
 
 def create_histogram_from_csv(csv_path, output_png_path):
     """
-    Reads a CSV file with 'value' and 'count' columns and generates a bar chart
-    (visual histogram) from the data, saving it as a PNG image.
+    Reads a CSV, generates a histogram, and colors landmarks by frequency
+    to ensure the most common landmarks have the most distinct colors.
     """
     try:
-
         df_reloaded = pd.read_csv(csv_path)
+
+        landmark_counts = df_reloaded.groupby('landmark_type')['count'].sum().sort_values(ascending=False)
+
+        sorted_landmarks = landmark_counts.index.tolist()
+        num_landmarks = len(sorted_landmarks)
+        high_contrast_palette = sns.color_palette("husl", n_colors=num_landmarks)
+
+        custom_palette = dict(zip(sorted_landmarks, high_contrast_palette))
+
+        num_unique_positions = df_reloaded['position'].nunique()
+
+        if max_bins:
+            number_of_bins = min(num_unique_positions, 10000)
+        else:
+            number_of_bins = num_unique_positions
 
         plt.figure(figsize=(12, 7))
 
@@ -28,30 +43,25 @@ def create_histogram_from_csv(csv_path, output_png_path):
             hue='landmark_type',
             weights='count',
             multiple='stack',
-            discrete=True, 
-            # binwidth=1,
-            # shrink=0.8,
-            edgecolor='white'
+            bins=number_of_bins,
+            edgecolor='white',
+            legend=False,
+            hue_order=sorted_landmarks,
+            palette=custom_palette
         )
 
         plt.title('Distribution of Landmark positions', fontsize=16)
         plt.xlabel('Landmark Position', fontsize=12)
         plt.ylabel('Frequency', fontsize=12)
         
-
-        plt.xticks(df_reloaded['position'].unique())
         plt.xticks(rotation=45)
-
 
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
         plt.grid(axis='y', linestyle='--', alpha=0.7)
-
         plt.tight_layout()
-
         plt.savefig(output_png_path, dpi=300)
-        
         plt.close()
 
         print(f"Histogram successfully saved to: {output_png_path}")
@@ -84,9 +94,13 @@ def worker(path):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument('data_directory')
+    p.add_argument("-b", type=int, default=None,
+               help="Maximum number of bins")
     p.add_argument("-j", "--jobs", type=int,
                help="Number of parallel jobs")
     args = p.parse_args()
+
+    max_bins = args.b
 
     indir = Path(args.data_directory)
     if not indir.is_dir():
