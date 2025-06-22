@@ -46,6 +46,7 @@ def create_histogram_from_csv(csv_path, output_png_path):
             bins=number_of_bins,
             edgecolor='white',
             legend=False,
+
             hue_order=sorted_landmarks,
             palette=custom_palette
         )
@@ -58,6 +59,8 @@ def create_histogram_from_csv(csv_path, output_png_path):
 
         ax = plt.gca()
         ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
 
         plt.grid(axis='y', linestyle='--', alpha=0.7)
         plt.tight_layout()
@@ -78,14 +81,29 @@ def worker(path):
         if str(f).lower().endswith('.csv'):
             csv_filename = Path(path) / "landmarks_distribution.csv"
 
-            if "UCPOPLM" in str(f):
-                heuristic = "UCPOPLM"
-            elif "UCPOP" in str(f):
-                heuristic = "UCPOP"
+            if "UCPOPLM" in path.name:
+                plan_selection = "UCPOPLM"
+            elif "UCPOP" in path.name:
+                plan_selection = "UCPOP"
+
+            if "lLIFO" in path.name:
+                flaw_selection = "lLIFO"
+            elif "fLIFO" in path.name:
+                flaw_selection = "fLIFO"
+            elif "ff" in path.name:
+                flaw_selection = "ff"
+            elif "fl" in path.name:
+                flaw_selection = "fl"
+            elif "lf" in path.name:
+                flaw_selection = "lf"
+            elif "ll" in path.name:
+                flaw_selection = "ll"
+            elif "neutral" in path.name:
+                flaw_selection = "neutral"
             
-            full_heuristics = (str(heuristic) + "_neutral_")
+            full_heuristics = (str(plan_selection) + str(flaw_selection))
             png_filename = path.name.replace(full_heuristics, "")
-            png_filename = histograms_folder/ Path(str(heuristic)) / Path(png_filename)
+            png_filename = histograms_folder/ Path(str(flaw_selection)) / Path(str(plan_selection)) / Path(png_filename)
 
             create_histogram_from_csv(csv_path=csv_filename, output_png_path=png_filename)
 
@@ -107,7 +125,7 @@ if __name__ == "__main__":
         print(f"[!] '{indir}' is not a directory", file=sys.stderr)
         sys.exit(1)
 
-    folders = [f for f in indir.iterdir() if "neutral" in f.name]
+    folders = [f for f in indir.iterdir()]
 
     with Pool(processes=args.jobs) as pool:
         pool.map(worker, folders)
