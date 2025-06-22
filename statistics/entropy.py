@@ -49,7 +49,7 @@ if __name__ == "__main__":
         print(f"[!] '{indir}' is not a directory", file=sys.stderr)
         sys.exit(1)
 
-    folders = [f for f in indir.iterdir() if "neutral" in f.name]
+    folders = [f for f in indir.iterdir()]
     fieldnames = ['problem','entropy']
 
     with open(outcsv, 'w', newline='') as csvfile:
