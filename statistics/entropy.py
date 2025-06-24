@@ -20,17 +20,18 @@ def calculate_entropy(csv_path):
     positions_counts = df.groupby('position')['count'].sum()
 
     total_landmarks = positions_counts.sum()
-    entropy = -sum(count / total_landmarks * np.log2(count / total_landmarks) for count in positions_counts)
+    entropy = -sum((count / total_landmarks) * np.log2(count / total_landmarks) for count in positions_counts)
+    normal_entropy = entropy / np.log2(df.groupby('position').size().count())
 
-    return entropy 
+    return entropy, normal_entropy
 
 def worker(path):
     print(f"Processing {path}")
     for f in path.iterdir():
         if str(f).lower().endswith('.csv'):
             csv_filename = Path(path) / "landmarks_distribution.csv"
-            
-            return {'problem': path.stem, 'entropy': calculate_entropy(csv_path=csv_filename)}
+            entropy, normal_entropy = calculate_entropy(csv_path=csv_filename)
+            return {'problem': path.stem, 'entropy': entropy, 'normal_entropy': normal_entropy}
 
 
 
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     folders = [f for f in indir.iterdir()]
-    fieldnames = ['problem','entropy']
+    fieldnames = ['problem','entropy', 'normal_entropy']
 
     with open(outcsv, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
