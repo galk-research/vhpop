@@ -9,6 +9,9 @@ import sys
 import seaborn as sns
 import numpy as np
 import warnings
+import re
+from functools import partial
+
 
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
@@ -18,7 +21,7 @@ landmark_plots = False
 
 
 
-def create_histograms_from_csv(csv_path, output_png_path):
+def create_histograms_from_csv(csv_path, output_png_path, domain_colors):
     """
     Reads a CSV, generates a combined histogram, and a separate plot for each
     landmark type.
@@ -43,9 +46,7 @@ def create_histograms_from_csv(csv_path, output_png_path):
 
         landmark_counts = df_reloaded.groupby('landmark_type')['count'].sum().sort_values(ascending=False)
         sorted_landmarks = landmark_counts.index.tolist()
-        num_landmarks = len(sorted_landmarks)
-        high_contrast_palette = sns.color_palette("husl", n_colors=num_landmarks)
-        custom_palette = dict(zip(sorted_landmarks, high_contrast_palette))
+        custom_palette = domain_colors
 
     except FileNotFoundError:
         print(f"Error: The input CSV file was not found at {csv_path}")
@@ -92,7 +93,7 @@ def create_histograms_from_csv(csv_path, output_png_path):
         )
         plt.title('Combined Distribution of All Landmark Positions', fontsize=16)
         plt.xlabel('Landmark Position', fontsize=12)
-        plt.ylabel('Total Frequency (Count)', fontsize=12)
+        plt.ylabel('Frequency', fontsize=12)
         plt.xticks(rotation=45)
         plt.xlim(global_min_pos, global_max_pos)
         ax = plt.gca()
@@ -140,7 +141,7 @@ def create_histograms_from_csv(csv_path, output_png_path):
 
                 plt.title(f'Distribution for Landmark: {landmark}', fontsize=16)
                 plt.xlabel('Landmark Position', fontsize=12)
-                plt.ylabel('Frequency (Count)', fontsize=12)
+                plt.ylabel('Frequency', fontsize=12)
                 plt.xticks(rotation=45)
                 
                 plt.xlim(global_min_pos, global_max_pos)
@@ -161,37 +162,25 @@ def create_histograms_from_csv(csv_path, output_png_path):
         print("All individual plots successfully created.")
 
 
-def worker(path):
+def worker(path, domain_palettes):
     print(f"\nProcessing {path}")
-    for f in path.iterdir():
-        if str(f).lower().endswith('.csv'):
-            csv_filename = Path(path) / "landmarks_distribution.csv"
+    domain_name = path.name.split('_')[0]
+    domain_colors = domain_palettes.get(domain_name)    
+    
+    csv_filename = path / "landmarks_distribution.csv"
+    if not csv_filename.exists():
+        print(f"  - Skipping {path.name}: landmarks_distribution.csv not found.")
+        return
 
-            if "UCPOPLM" in path.name:
-                plan_selection = "UCPOPLM"
-            elif "UCPOP" in path.name:
-                plan_selection = "UCPOP"
 
-            if "lLIFO" in path.name:
-                flaw_selection = "lLIFO"
-            elif "fLIFO" in path.name:
-                flaw_selection = "fLIFO"
-            elif "ff" in path.name:
-                flaw_selection = "ff"
-            elif "fl" in path.name:
-                flaw_selection = "fl"
-            elif "lf" in path.name:
-                flaw_selection = "lf"
-            elif "ll" in path.name:
-                flaw_selection = "ll"
-            elif "neutral" in path.name:
-                flaw_selection = "neutral"
-            
-            full_heuristics = (str(plan_selection) + str(flaw_selection))
-            png_filename = path.name.replace(full_heuristics, "")
-            png_filename = histograms_folder/ Path(str(flaw_selection)) / Path(str(plan_selection)) / Path(png_filename)
+    plan_selection = "UCPOPLM" if "UCPOPLM" in path.name else "UCPOP" if "UCPOP" in path.name else "unknown_plan"
+    flaw_selection_map = {"lLIFO": "lLIFO", "fLIFO": "fLIFO", "ff": "ff", "fl": "fl", "lf": "lf", "ll": "ll", "neutral": "neutral"}
+    flaw_selection = next((val for key, val in flaw_selection_map.items() if key in path.name), "unknown_flaw")
+    full_heuristics = str(plan_selection) + str(flaw_selection)
+    png_filename_stem = path.name.replace(full_heuristics, "")
+    png_path = histograms_folder / flaw_selection / plan_selection / png_filename_stem
 
-            create_histograms_from_csv(csv_path=csv_filename, output_png_path=png_filename)
+    create_histograms_from_csv(csv_path=csv_filename, output_png_path=png_path, domain_colors=domain_colors)
 
 
 
@@ -215,7 +204,60 @@ if __name__ == "__main__":
         print(f"[!] '{indir}' is not a directory", file=sys.stderr)
         sys.exit(1)
 
-    folders = [f for f in indir.iterdir()]
+    all_folders = [f for f in indir.iterdir() if f.is_dir()]
+    histograms_folder = Path("histograms")
 
+
+    print("--- Pre-processing: Grouping folders by domain ---")
+    domain_folders = {}
+    for folder in all_folders:
+        domain_name = folder.name.split('_')[0]
+        domain_folders.setdefault(domain_name, []).append(folder)
+    print(f"Found {len(domain_folders)} domains: {', '.join(domain_folders.keys())}\n")
+
+
+    print("--- Pre-processing: Generating color palettes for each domain ---")
+    domain_palettes = {}
+    for domain, folders_in_domain in domain_folders.items():
+        print(f"  - Processing domain: '{domain}'...")
+        
+
+        all_landmarks_for_domain = set()
+
+
+        for folder in folders_in_domain:
+            csv_path = folder / "landmarks_distribution.csv"
+            if csv_path.exists():
+                try:
+
+                    df = pd.read_csv(csv_path)
+
+                    if 'landmark_type' in df.columns:
+                        all_landmarks_for_domain.update(df['landmark_type'].unique())
+                except Exception as e:
+                    print(f"    - WARNING: Could not read or process {csv_path}. Skipping this file. Error: {e}")
+
+
+        if not all_landmarks_for_domain:
+            print(f"    - WARNING: No landmarks found for domain '{domain}'. This domain will be skipped.")
+            continue
+
+
+        landmark_types = sorted(list(all_landmarks_for_domain))
+        palette = sns.color_palette("husl", n_colors=len(landmark_types))
+        
+        domain_palettes[domain] = dict(zip(landmark_types, palette))
+        print(f"    - Created palette with {len(landmark_types)} total unique colors for '{domain}'.")
+    
+
+    partial_worker = partial(
+        worker, 
+        domain_palettes=domain_palettes
+    )
+
+
+    print(f"\n--- Starting processing with {args.jobs} job(s) ---")
     with Pool(processes=args.jobs) as pool:
-        pool.map(worker, folders)
+        pool.map(partial_worker, all_folders)
+    
+    print("\n--- All tasks complete! ---")
