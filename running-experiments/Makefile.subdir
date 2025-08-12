@@ -20,25 +20,51 @@ VHPOPLOG     := vhpop-log
 ERRLOG       := err
 TIMELOG      := time
 
+# Determine the type of the current directory (strips or time-simple).
+ifeq ($(findstring time-simple,$(notdir $(patsubst %/,%,$(PWD)))),time-simple)
+    DIR_TYPE := time-simple
+    STRIPS_DIR := $(subst time-simple,strips,../$(notdir $(patsubst %/,%,$(PWD))))
+else
+    DIR_TYPE := strips
+endif
+
+ifeq ($(DIR_TYPE),strips)
+%_lm: %.pddl $(DOM)
+	@echo "Extracting landmarks for $< in $(PWD)"
+	@python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 --sas-file $@.sas $(DOM) $< >$@ 2>$@.$(ERRLOG)
+
+.SECONDARY: $(PROBS:%.pddl=%_lm)
+endif
+
+
 .PHONY: all clean
 all: $(foreach p,$(PLANNERS),$(foreach h,$(HEURINGS),$(PROBS:%.pddl=%_$(p)_$(h).$(VHPOPLOG))))
 	@touch ../DONE
 
 clean:
-	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.sas
+	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.sas *._lm
 
-# Extract landmarks per problem
-%_lm: %.pddl $(DOM)
-	@echo "Extracting landmarks for $<"
-	@python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 --sas-file $@.sas $(DOM) $< >$@ 2>$@.$(ERRLOG)
+
+ifeq ($(DIR_TYPE), time-simple)
+    # For a time-simple problem, the landmark dependency is the _lm file in the STRIPS_DIR.
+    LANDMARK_DEP_PATH = $(STRIPS_DIR)/%_lm
+    # The argument passed to VHPOP must also point to the file in the STRIPS_DIR.
+    LANDMARK_ARG_PATH = $(STRIPS_DIR)/$$*_lm
+else
+    # For a strips problem, the landmark dependency and argument are local files.
+    LANDMARK_DEP_PATH = %_lm
+    LANDMARK_ARG_PATH = $$*_lm
+endif
+
 
 define VHPOP_RULE
-%_$(1)_$(2).$(VHPOPLOG): %.pddl $(DOM) %_lm
-	@echo "Running $(1) with $(2) on $$<"
+# The landmark dependency is now a variable.
+%_$(1)_$(2).$(VHPOPLOG): %.pddl $(DOM) $(LANDMARK_DEP_PATH)
+	@echo "Running $(1) with $(2) on $$< using landmarks from $(LANDMARK_ARG_PATH)"
 	@- ( \
 	    ulimit -t $(TIMEOUT); \
 	    /usr/bin/time -p -o $$@.$(TIMELOG) \
-	      $(VHPOP) -v10 -g -y -m $$*_lm \
+	      $(VHPOP) -v10 -g -y -m $(LANDMARK_ARG_PATH) \
 	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1 \
 	  )
 	  

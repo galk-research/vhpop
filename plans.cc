@@ -2445,9 +2445,7 @@ std::ostream& operator<<(std::ostream& os, const Plan& p) {
   }
 #endif
   if (verbosity < 2 || verbosity == 10) {
-    if (verbosity != 10) {
-      std::cerr << "Makespan: " << makespan << std::endl;
-    }
+    std::cerr << "Makespan: " << makespan << std::endl;
     bool first = true;
     for (std::vector<const Step*>::const_iterator si = ordered_steps.begin();
          si != ordered_steps.end(); si++) {
