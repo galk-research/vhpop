@@ -1276,6 +1276,9 @@ Heuristic& Heuristic::operator=(const std::string& name) {
     } else if (strcasecmp(n, "ADDR") == 0) {
       h_.push_back(ADDR);
       needs_pg_ = true;
+    } else if (strcasecmp(n, "ADDRLM") == 0) {
+      h_.push_back(ADDRLM);
+      needs_pg_ = true;
     } else if (strcasecmp(n, "ADDR_COST") == 0) {
       h_.push_back(ADDR_COST);
       needs_pg_ = true;
@@ -1405,6 +1408,7 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
     case ADDR:
     case ADDR_COST:
     case ADDR_WORK:
+    case ADDRLM:
       if (!addr_done) {
         addr_done = true;
         for (const Chain<OpenCondition>* occ = plan.open_conds();
@@ -1426,6 +1430,12 @@ void Heuristic::plan_rank(std::vector<float>& rank, const Plan& plan,
       } else if (h == ADDR_COST) {
         if (addr_cost < std::numeric_limits<int>::max()) {
           rank.push_back(addr_cost);
+        } else {
+          rank.push_back(std::numeric_limits<float>::infinity());
+        }
+      } else if (h == ADDRLM) {
+        if (addr_cost < std::numeric_limits<int>::max()) {
+          rank.push_back(plan.num_steps()*(!is_gbfs) + weight*(addr_cost + plan.num_landmark_conds()));
         } else {
           rank.push_back(std::numeric_limits<float>::infinity());
         }

@@ -280,7 +280,7 @@ struct Heuristic {
 private:
   /* Heuristics. */
   typedef enum { LIFO, FIFO, OC, UC, BUC, S_PLUS_OC, UCPOP,
-                 ADD, ADD_COST, ADD_WORK, ADDR, ADDR_COST, ADDR_WORK,
+                 ADD, ADD_COST, ADD_WORK, ADDR, ADDR_COST, ADDR_WORK, ADDRLM,
                  MAKESPAN, PL, UCPOPLM, LM, MAX, MAX_COST, MAX_WORK, FF, FF_COST, FFR, FFR_COST } HVal;
 
   /* The selected heuristics. */
