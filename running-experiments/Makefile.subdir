@@ -3,17 +3,27 @@ DOM      := $(wildcard domain*.pddl)
 PROBS    := $(filter-out $(DOM),$(wildcard *.pddl))
 
 # Planner configurations
-PLANNERS   := UCPOP UCPOPLM
+PLANNERS   := full-add
 HEURINGS   := neutral fLIFO lLIFO ff fl lf ll
 
 # Map flaw-names to flags
-neutral := {n,s}LIFO/{o}LIFO
-fLIFO   := {n,s}LIFO/{m}LIFO/{o}LIFO
-lLIFO   := {n,s}LIFO/{x}LIFO/{o}LIFO
-ff      := {n,s}LIFO/{m}LMO/{o}LIFO
-fl      := {n,s}LIFO/{m}RLMO/{o}LIFO
-lf      := {n,s}LIFO/{x}LIFO/{o}LMO
-ll      := {n,s}LIFO/{x}LIFO/{o}RLMO
+neutral := -f {n,s}LIFO/{o}LIFO
+fLIFO   := -f {n,s}LIFO/{m}LIFO/{o}LIFO
+lLIFO   := -f {n,s}LIFO/{x}LIFO/{o}LIFO
+ff      := -f {n,s}LIFO/{m}LMO/{o}LIFO
+fl      := -f {n,s}LIFO/{m}RLMO/{o}LIFO
+lf      := -f {n,s}LIFO/{x}LIFO/{o}LMO
+ll      := -f {n,s}LIFO/{x}LIFO/{o}RLMO
+
+full-add   := ADDR/ADDR_WORK/BUC/LIFO
+full-addlm := ADDRLM/ADDR_WORK/BUC/LIFO
+longh      := -f {n,s}LR/{l}MW_add -l 12000 -f {n,s}LR/{u}MW_add/{l}MW_add -l 100000 -f {n,s,l}LR -l 240000 -f {n,s,u}LR/{l}LR -l unlimited
+
+add  := ADD
+addr := ADDR
+ff   := FF
+ffr  := FFR
+
 
 # Derived names
 VHPOPLOG     := vhpop-log
@@ -30,8 +40,8 @@ endif
 
 ifeq ($(DIR_TYPE),strips)
 %_lm: %.pddl $(DOM)
-	@echo "Extracting landmarks for $< in $(PWD)"
-	@python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 --sas-file $@.sas $(DOM) $< >$@ 2>$@.$(ERRLOG)
+        @echo "Extracting landmarks for $< in $(PWD)"
+        @python3 $(LANDMARK_SCRIPT) --alias seq-sat-lama-2011 --sas-file $@.sas $(DOM) $< >$@ 2>$@.$(ERRLOG)
 
 .SECONDARY: $(PROBS:%.pddl=%_lm)
 endif
@@ -39,10 +49,10 @@ endif
 
 .PHONY: all clean
 all: $(foreach p,$(PLANNERS),$(foreach h,$(HEURINGS),$(PROBS:%.pddl=%_$(p)_$(h).$(VHPOPLOG))))
-	@touch ../DONE
+        @touch ../DONE
 
 clean:
-	-rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.sas *._lm
+        -rm -f $(TGTS) *.$(ERRLOG).bz2 *.$(TIMELOG).bz2 *.$(VHPOPLOG).bz2 00FOLDER.txt *.sas *._lm
 
 
 ifeq ($(DIR_TYPE), time-simple)
@@ -60,20 +70,20 @@ endif
 define VHPOP_RULE
 # The landmark dependency is now a variable.
 %_$(1)_$(2).$(VHPOPLOG): %.pddl $(DOM) $(LANDMARK_DEP_PATH)
-	@echo "Running $(1) with $(2) on $$< using landmarks from $(LANDMARK_ARG_PATH)"
-	@- ( \
-	    ulimit -t $(TIMEOUT); \
-	    /usr/bin/time -p -o $$@.$(TIMELOG) \
-	      $(VHPOP) -v10 -g -y -m $(LANDMARK_ARG_PATH) \
-	      -f "$($(2))" -h "$(1)" $(DOM) $$< > $$@ 2>&1 \
-	  )
-	  
-	@{ \
-		folder_name="$$$${PWD##*/}_$$(@:.$(VHPOPLOG)=)_$$$$(date +%s)"; \
-		mkdir -p $(DATADIR)/$$$$folder_name; \
-		nice -n 10 bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG); \
-		mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$$$folder_name; \
-	}
+        @echo "Running $(1) with $(2) on $$< using landmarks from $(LANDMARK_ARG_PATH)"
+        @- ( \
+            ulimit -t $(TIMEOUT); \
+            /usr/bin/time -p -o $$@.$(TIMELOG) \
+              $(VHPOP) -v10 -g -y -m $(LANDMARK_ARG_PATH) \
+              $($(2)) -h $($(1)) $(DOM) $$< > $$@ 2>&1 \
+          )
+
+        @{ \
+                folder_name="$$$${PWD##*/}_$$(@:.$(VHPOPLOG)=)_$$$$(date +%s)"; \
+                mkdir -p $(DATADIR)/$$$$folder_name; \
+                nice -n 10 bzip2 $$@ $$@.$(TIMELOG) 2> $$@_bzip2.$(ERRLOG); \
+                mv $$@.bz2 $$@.$(TIMELOG).bz2 $$@_bzip2.$(ERRLOG) $(DATADIR)/$$$$folder_name; \
+        }
 endef
 
 
