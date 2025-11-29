@@ -7,6 +7,9 @@ vhpop-*.*/
 *.log
 *.trs
 src/*_test
+.cache/
+.vscode/
+compile_commands.json
 
 # Automake files.
 Makefile.in
@@ -34,6 +37,7 @@ ltversion.m4
 Makefile
 !gtest/make/Makefile
 !gtest/scripts/test/Makefile
+!gtest/m4/
 
 # Compiled object files.
 *.lo
